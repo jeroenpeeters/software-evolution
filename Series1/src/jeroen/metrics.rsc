@@ -12,17 +12,20 @@ public loc smallsql     = |project://smallsql0.21_src/|;
 public loc hsqldb       = |project://hsqldb-2.3.1/|;
 public loc helloworld   = |project://HelloWorld/|;
 
+data Rank = pp() | p() | n() | m() | mm();
+
 @doc{
 Computes metrics for the given Eclipse Project
 }
 public void computeMetricsForEclipseProject(loc project){
     ast = createAstsFromEclipseProject (project, false);
-    println(ast);
-    println("LoC: <locMetric(ast)>");
+    
+    println("LoC: <locMetric(ast)>
+    		 'Rank Man Year Via Backfiring Function Points: <rankMyBackfiringFp(ast)>");
 }
 
 @doc{
-SIG Model; Volume 1. Lines of code
+SIG Model; Volume; Lines of code
 }
 public int locMetric(set[Declaration] ast){
     int l = 0;
@@ -42,10 +45,29 @@ public int locMetric(set[Declaration] ast){
 }
 
 @doc{
-SIG Model; Volume 2. Man years via backfiring function points
+SIG Model; Volume; Man years via backfiring function points
 }
-public int myViaBackfiringFp(set[Declaration] ast){
+public Rank rankMyBackfiringFp(set[Declaration] ast){
+	kloc = locMetric(ast)/1000;
+	if(kloc < 66){
+		return pp();
+	} else if(kloc >= 66 && kloc < 246){
+		return p();
+	} else if(kloc >= 246 && kloc < 665){
+		return n();
+	} else if(kloc >= 665 && kloc < 1310){
+		return m();
+	} else {
+		return mm();
+	}
+	
+}
 
+@doc{
+SIG Model; Complexity per unit
+}
+public void cyclomaticComplexityPerUnit(set[Declaration] ast){
+	
 }
 
 /*
