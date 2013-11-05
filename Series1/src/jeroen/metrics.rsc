@@ -17,12 +17,12 @@ Computes metrics for the given Eclipse Project
 }
 public void computeMetricsForEclipseProject(loc project){
     ast = createAstsFromEclipseProject (project, false);
-    
+    println(ast);
     println("LoC: <locMetric(ast)>");
 }
 
 @doc{
-Calculates the Lines Of Code metric.
+SIG Model; Volume 1. Lines of code
 }
 public int locMetric(set[Declaration] ast){
     int l = 0;
@@ -41,6 +41,13 @@ public int locMetric(set[Declaration] ast){
     return l;
 }
 
+@doc{
+SIG Model; Volume 2. Man years via backfiring function points
+}
+public int myViaBackfiringFp(set[Declaration] ast){
+
+}
+
 /*
  * Private section from here on
  */
@@ -49,5 +56,5 @@ public int locMetric(set[Declaration] ast){
 Prints a node, this method is used to centralize switching output on or off.
 }
 private void p(node n){
-    println(n); // comment-out to turn output off
+    //println(n); // comment-out to turn output off
 }
