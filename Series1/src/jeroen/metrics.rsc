@@ -12,6 +12,8 @@ public loc smallsql     = |project://smallsql0.21_src/|;
 public loc hsqldb       = |project://hsqldb-2.3.1/|;
 public loc helloworld   = |project://HelloWorld/|;
 
+public set[Declaration] astH = createAstsFromEclipseProject(helloworld, false);
+
 data Rank = pp() | p() | n() | m() | mm();
 
 @doc{
@@ -66,8 +68,21 @@ public Rank rankMyBackfiringFp(set[Declaration] ast){
 @doc{
 SIG Model; Complexity per unit
 }
-public void cyclomaticComplexityPerUnit(set[Declaration] ast){
-	
+public map[str, int] cyclomaticComplexityPerUnit(set[Declaration] ast){
+	d = ();
+	visit(ast){
+		case method(_, name, _, _, s)	: d[name] = complexity(s);
+	}
+	return d;
+}
+
+public int complexity(Statement s){
+	int i = 0;
+	visit(s){
+		case methodCall(_,_,_) 		: i += 1;
+		case methodCall(_,_,_,_) 	: i += 1;
+	}
+	return i;
 }
 
 /*
@@ -78,5 +93,5 @@ public void cyclomaticComplexityPerUnit(set[Declaration] ast){
 Prints a node, this method is used to centralize switching output on or off.
 }
 private void p(node n){
-    //println(n); // comment-out to turn output off
+    println(n); // comment-out to turn output off
 }
