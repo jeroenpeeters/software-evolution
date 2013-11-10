@@ -1,4 +1,6 @@
-Series1/.classpath
+*.classpath
+*.project
+*.class
 Series1/.settings/org.eclipse.core.resources.prefs
 Series1/bin/*
 Systems/smallsql0.21_src/bin/
