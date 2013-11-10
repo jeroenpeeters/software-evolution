@@ -2,6 +2,7 @@ module yosuf::SigMM
 
 extend yosuf::Volume;
 
+
 import lang::java::jdt::m3::AST;
 import IO;
 import List;
@@ -9,11 +10,14 @@ import List;
 /*For Ranking*/
 import jeroen::metrics;
 
-//eclipse project location
-public loc simpleJavaProject	 = |project://SimpleJava/|;
+//eclipse project locations
+public loc simple	 = |project://SimpleJava/|;
 public loc simpleInterface	 = |project://SimpleJava/src/very/SimpleInterface.java/|;
 public loc printer	 = |project://SimpleJava/src/very/simple/Printer.java/|;
 public loc simpleClass	 = |project://SimpleJava/src/very/simple/SimpleClass.java/|;
+
+public loc smallSql	 = |project://SmallSQL/|;
+public loc hsql	 = |project://hsql/|;
 
 public loc scrumviz	 = |project://scrumviz/|;
 
@@ -58,14 +62,14 @@ public int cacluateSLOC(Declaration ast){
      	   case Statement s              :{count+=1; print("s: <s>"); }
      	   
      	   // One or the other way, else block is skipped...
-     	   
      	   //Annotations?
     }
     return count;
 }
 
+
 /**
-* Originally from Jeroen's idea where node is printed.
+* Originally from Jeroens idea where node is printed.
 */
 public void print(str arg){
 	 if(printEnabled){
