@@ -6,7 +6,7 @@ public class SimpleClass implements SimpleInterface {
 //3
 	
 	@Override
-	public int simpleInt() {
+	public int simpleInt(int i) throws RuntimeException {
 	//4	
 		return 0;
 		//5
@@ -22,6 +22,5 @@ public class SimpleClass implements SimpleInterface {
 		//8
 		
 	}
-
 
 }

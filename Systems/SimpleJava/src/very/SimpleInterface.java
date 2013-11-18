@@ -25,7 +25,7 @@ public interface SimpleInterface {
 	static String SIMPLE_STRING ="";
 	//4
 	
-	int simpleInt();
+	int simpleInt(int i);
 	void simpleVoid();
 	//6
 }
