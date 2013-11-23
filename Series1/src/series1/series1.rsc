@@ -9,13 +9,13 @@ import series1::CCMetric;
 
 public loc smallsql     = |project://smallsql0.21_src/|;
 public loc hsqldb       = |project://hsqldb-2.3.1/|;
-public loc helloworld   = |project://HelloWorld/|;
+public loc simplejava   = |project://SimpleJava/|;
 
-public set[Declaration] astH = createAstsFromEclipseProject(helloworld, false);
-public set[Declaration] astS = createAstsFromEclipseProject(smallsql, false);
+public set[Declaration] astSimple 	 = createAstsFromEclipseProject(simplejava, false);
+public set[Declaration] astSql		 = createAstsFromEclipseProject(smallsql, false);
 
 public void series1(loc project){
-	ast = createAstsFromEclipseProject(project, true);
+	ast = createAstsFromEclipseProject(project, false);
 	
 	println("## Cyclomatic complexity per unit ##");
 	for(cc <- reverse(sort(ccPerUnit(ast)))){
