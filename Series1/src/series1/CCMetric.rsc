@@ -13,6 +13,13 @@ public lrel[int, str, loc] ccPerUnit(set[Declaration] ast){
         append <cc(s), "<fqPackageName(package)>.<className>#<name>", m@src>;
 }
 
+@doc{
+Selects the methods with a minimal cyclomatic complexity of mincc.
+}
+public lrel[int, str, loc] minCC(int mincc, lrel[int, str, loc] cclist){
+	return [cc | cc <- cclist, cc[0] >= mincc];
+}
+
 @doc {
 Computes the complexity of the given sub-AST.
 Complexity increases for the following: break, case, catch, continue, do-while, foreach, for, if, if-else, throw, while, 

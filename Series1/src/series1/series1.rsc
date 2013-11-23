@@ -18,7 +18,9 @@ public void series1(loc project){
 	ast = createAstsFromEclipseProject(project, false);
 	
 	println("## Cyclomatic complexity per unit ##");
-	for(cc <- reverse(sort(ccPerUnit(ast)))){
+	ccList = ccPerUnit(ast);
+	for(cc <- reverse(sort(ccList))){
 		println("<cc[0]> :: <cc[1]> :: (<cc[2]>)");
 	}
+	println("Number of methods with minimal CC of 10 is <size(minCC(10,ccList))>");
 }
