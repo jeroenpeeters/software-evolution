@@ -43,6 +43,21 @@ public class HelloWorld implements Serializable {
 			System.out.println("else");
 		}
 	}
+	
+	public static void main2(String[] args) {
+		for (String s : args) {
+			System.out.println(s);
+		}
+
+		if (args.length > 0 || "".length() > 0) {
+			System.out.println("if");
+			if (true) {
+				System.out.println("true");
+			}
+		} else {
+			System.out.println("else");
+		}
+	}
 
 	public void test() {
 		String str = "someString";
