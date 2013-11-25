@@ -3,6 +3,12 @@ module jeroen::metrics
 
 import IO;
 import Node;
+import List;
+import Set;
+
+import DateTime;
+
+import util::Math;
 
 import analysis::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -11,10 +17,12 @@ import lang::java::m3::AST;
 
 public loc smallsql     = |project://smallsql0.21_src/|;
 public loc hsqldb       = |project://hsqldb-2.3.1/|;
-public loc helloworld   = |project://HelloWorld/|;
+public loc simplejava   = |project://SimpleJava/|;
 
-public set[Declaration] astH = createAstsFromEclipseProject(helloworld, false);
+public set[Declaration] astH = createAstsFromEclipseProject(simplejava, false);
 public set[Declaration] astS = createAstsFromEclipseProject(smallsql, false);
+public set[Declaration] astS2 = createAstsFromEclipseProject(hsqldb, false);
+public set[Declaration] sf = {createAstsFromEclipseFile(|project://SimpleJava/src/hello/world/Duplication.java|, false)};
 
 data Rank = pp() | p() | n() | m() | mm();
 
@@ -71,21 +79,196 @@ public Rank rankMyBackfiringFp(set[Declaration] ast){
 @doc{
 SIG Model; Complexity per unit
 }
-public lrel[str, int] cyclomaticComplexityPerUnit(set[Declaration] ast){
-    return for(/compilationUnit(package, _, /class(className, _,_, /method(_, name, _, _, s))) <- ast)
-        append <"<absolutePackageName(package)>.<className>#<name>", complexity(s)>;
+public lrel[int, str, loc] cyclomaticComplexityPerUnit(set[Declaration] ast){
+    return for(/compilationUnit(package, _, /class(className, _,_, /m:method(_, name, _, _, s) )) <- ast)
+        append <complexity(s), "<absolutePackageName(package)>.<className>#<name>", m@src>;
 }
 
-public int complexity(Statement s){
-    int i = 0;
-    visit(s){
-        case methodCall(_,_,_)       : i += 1;
-        case methodCall(_,_,_,_)     : i += 1;
+private int complexity(Statement stmnt){
+    int i = 1;
+    int retCount = -1;
+    visit(stmnt){
+    	case \return(): retCount += 1;
+    	case \return(_): retCount += 1;
+    	case \break(): i += 1;
+    	case \break(_): i+= 1;
+    	case \case(_): i += 1;
+    	case \catch(_,_): i += 1;
+    	case \continue(): i += 1;
+    	case \continue(_): i+= 1;
+    	case \do(_,_): i += 1;
+    	case \foreach(_,_,_): i += 1;
+    	case \for(_,_,_,_): i += 1;
+    	case \for(_,_,_): i += 1;
+    	case \if(Expression condition, Statement thenBranch, Statement elseBranch): i += 1;
+    	case \if(Expression condition, Statement thenBranch): i += 1;
+    	case \infix(_,"||",_,_): i += 1;
+    	case \infix(_,"&&",_,_): i += 1;
+    	case \throw(_): i += 1;
+    	case \while(_,_): i += 1;
+    	
     }
-    return i;
+    retCount = retCount == -1 ? 0 : retCount;
+    return i + retCount;
 }
 
-/*
+data Line = Line(str);
+anno int Line @ nr;
+
+private Line makeLine(str code, int lineNum){
+	l = Line(code);
+	l@nr = lineNum;
+	return l;
+}
+
+public void duplication(set[Declaration] ast){
+	list[Line] lines = [];
+    for(/c:compilationUnit(package, _, _) <- ast){
+    	str code = readFile(c@src);
+    	int lineNum = 1;
+    	for(/<line:.*>[\n|\r|\t]+<rest:[.\n\r\t]*>/ := code){
+    		code = rest; // reduce code with rest
+    		lines += makeLine(line, lineNum);
+    		lineNum += 1;
+    	}
+    }
+    
+    // count duplicate matches
+    // consolidate lines
+    
+    set[tuple[str, int]] duplicates = {};
+    // compute duplicate sets with 6 lines or more
+    for([*X,*A,*Y,*A,*Z] := lines, size(A)>5){
+    	for(l:Line(code) <- A){
+    		// reduce the duplicate set A to unique lines
+    		duplicates += <code, l@nr>;
+    	}
+    }
+    
+    real duplicatePercentage = (toReal(size(duplicates))/size(lines))*100;
+    println(size(lines));
+    println(size(duplicates));
+    println(duplicatePercentage);   
+}
+
+public void duplication2(set[Declaration] ast){
+	t0 = now();
+	set[list[Line]] blocks = {};
+	int lineCount = 0;
+    for(/c:compilationUnit(package, _, _) <- ast){
+    	str code = readFile(c@src);
+    	int lineNum = 0;
+    	cunitLines = [];
+    	for(/<line:.*>[\n|\r|\t]+<rest:[.|\n|\r|\t]*>/ := code){
+    		code = rest; // reduce code with rest
+    		lineNum += 1;
+    		cunitLines += makeLine(line, lineNum);
+    	}
+    	blocks += cunitLines;
+    	lineCount += lineNum;
+    }
+    println("a");
+    // make codeblocks of 6  or more lines
+	set[list[Line]] codeBlocks = {};
+	list[Line] duplist = [];
+    for(lines <- blocks){
+    	len = size(lines)+1;
+    	a =  [slice(lines,s,e) | s <- [0..len], e <- [6..10], s+e < len];
+    	for(x <- a){
+    		if( x in codeBlocks ){
+    			duplist += x;
+    		}else{
+    			codeBlocks += x;
+    		}
+    	}
+    }
+    
+    println("b");
+    
+    //diff = codeBlocks - dup(codeBlocks);
+    
+    println("c");
+    
+    set[tuple[str, int]] duplicates = {};
+	//for(lines <- diff){
+		for(l:Line(code) <- duplist){
+			// reduce the duplicate set to unique lines
+			duplicates += <code, l@nr>;
+		}
+	//}
+	
+	println("a");
+	
+	t1 = now();
+	
+	println(t1-t0);
+	
+    real duplicatePercentage = (toReal(size(duplicates))/lineCount)*100;
+    println(lineCount);
+    println(size(duplicates));
+    println(duplicatePercentage);
+}
+
+public void duplication3(set[Declaration] ast){
+	t0 = now();
+	set[list[Line]] blocks = {};
+	int lineCount = 0;
+    for(/c:compilationUnit(package, _, _) <- ast){
+    	str code = readFile(c@src);
+    	int lineNum = 0;
+    	cunitLines = [];
+    	for(/<line:.*>[\n|\r|\t]+<rest:[.|\n|\r|\t]*>/ := code){
+    		code = rest; // reduce code with rest
+    		lineNum += 1;
+    		cunitLines += makeLine(line, lineNum);
+    	}
+    	blocks += cunitLines;
+    	lineCount += lineNum;
+    }
+    println("a");
+    // make codeblocks of 6  or more lines
+	set[list[Line]] codeBlocks = {};
+	list[Line] duplist = [];
+    for(lines <- blocks){
+    	len = size(lines)+1;
+    	a =  [slice(lines,s,e) | s <- [0..len], e <- [6..10], s+e < len];
+    	for(x <- a){
+    		if( x in codeBlocks ){
+    			duplist += x;
+    		}else{
+    			codeBlocks += x;
+    		}
+    	}
+    }
+    
+    println("b");
+    
+    //diff = codeBlocks - dup(codeBlocks);
+    
+    println("c");
+    
+    set[tuple[str, int]] duplicates = {};
+	//for(lines <- diff){
+		for(l:Line(code) <- duplist){
+			// reduce the duplicate set to unique lines
+			duplicates += <code, l@nr>;
+		}
+	//}
+	
+	println("a");
+	
+	t1 = now();
+	
+	println(t1-t0);
+	
+    real duplicatePercentage = (toReal(size(duplicates))/lineCount)*100;
+    println(lineCount);
+    println(size(duplicates));
+    println(duplicatePercentage);
+}
+
+
+/**
  * Private section from here on
  */
 
@@ -98,3 +281,4 @@ Prints a node, this method is used to centralize switching output on or off.
 private void p(node n){
     //println(n); // comment-out to turn output off
 }
+

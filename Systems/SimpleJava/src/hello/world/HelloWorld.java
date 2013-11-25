@@ -17,7 +17,7 @@ public class HelloWorld implements Serializable {
 	}
 
 	protected void varargsMethod(int... ints) {
-
+		int i = true ? 1 : 0;
 	}
 
 	@Deprecated
