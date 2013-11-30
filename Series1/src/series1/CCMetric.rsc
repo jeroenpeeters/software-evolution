@@ -29,17 +29,9 @@ private int cc(Statement stmnt, bool strict){
     int i = 1;
     int retCount = -1;
     visit(stmnt){
-    	case \return(): retCount += s(strict);
-    	case \return(_): retCount += s(strict);
-    	case \break(): i += s(strict);
-    	case \break(_): i+= s(strict);
     	case \case(_): i += 1;
-    	case \default(_): i+= s(strict);
     	case \catch(_,_): i += 1;
     	case \conditional(_,_,_): i += 1;
-    	case \continue(): i += s(strict);
-    	case \continue(_): i+= s(strict);
-    	case \do(_,_): i += s(strict);
     	case \foreach(_,_,_): i += 1;
     	case \for(_,_,_,_): i += 1;
     	case \for(_,_,_): i += 1;
@@ -47,8 +39,17 @@ private int cc(Statement stmnt, bool strict){
     	case \if(_,_): i += 1;
     	case \infix(_,"||",_,_): i += 1;
     	case \infix(_,"&&",_,_): i += 1;
-    	case \throw(_): i += s(strict);
     	case \while(_,_): i += 1;
+    	
+    	case \default(_): i+= s(strict);
+    	case \return(): retCount += s(strict);
+    	case \return(_): retCount += s(strict);
+    	case \break(): i += s(strict);
+    	case \break(_): i+= s(strict);
+    	case \continue(): i += s(strict);
+    	case \continue(_): i+= s(strict);
+    	case \do(_,_): i += s(strict);
+    	case \throw(_): i += s(strict);
     }
     retCount = retCount == -1 ? 0 : retCount;
     return i + retCount;

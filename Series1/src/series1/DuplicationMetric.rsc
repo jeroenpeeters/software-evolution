@@ -16,9 +16,9 @@ private Line makeLine(str code, int lineNum){
 	return l;
 }
 
-public real duplication(set[Declaration] ast) = duplication(ast, 6);
+public real duplication(set[Declaration] ast, set[str] comments) = duplication(ast, 6, comments);
 
-public real duplication(set[Declaration] ast, blocksize){
+public real duplication(set[Declaration] ast, blocksize, set[str] comments){
 	set[list[Line]] blocks = {};
 	int lineCount = 0;
     for(/c:compilationUnit(package, _, _) <- ast){
@@ -28,7 +28,11 @@ public real duplication(set[Declaration] ast, blocksize){
     	list[str] lines = readFileLines(c@src);
 		for(line <- lines){
 			line = trim(line);
-			switch(line){
+			if(line notin comments && size(line)>0){
+				lineNum += 1;
+				cunitLines += makeLine(line, lineNum);
+			}
+			/*switch(line){
 				case /^$/: ; 		// exclude empty lines
 				case /^\/\/.*$/: ; 	// exlude comment from line count (// ...)
 				case /^\/\*.*$/: ; 	// exlude comment from line count (/* or /**)
@@ -38,7 +42,7 @@ public real duplication(set[Declaration] ast, blocksize){
 					lineNum += 1;
 					cunitLines += makeLine(line, lineNum);
 				}
-			}
+			}*/
 		}
     	
     	blocks += cunitLines;
