@@ -35,17 +35,22 @@ public void main(loc project){
 
 public Figure unitVolumeViz(ast, comments){
 	blocks = [];
-	lrel[int, str, loc] slocList = reverse(sort(slocPerUnit(ast, comments)));
+	lrel[int, str, loc] slocList = reverse(sort(slocPerUnit(ast	, comments)));
 	real largest = toReal(slocList[0][0]);
-	for(a <- slocList){
-		itemSize = (a[0]/largest) * 100;
-		item = a;
-		blocks += box(area(itemSize), fillColor(arbColor()),
-			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
-				edit(item[2]);
-				return true;
-			})
-		);
+	for(<size, name, ref> <- slocList){
+		itemSize = (size/largest) * 100;
+		short = substring(name, 1+findLast(name, "."));
+		c = false;
+		blocks += box(text("<size>", fontSize(toInt(itemSize/8))), area(itemSize), fillColor(arbColor()),
+			lineWidth(num () { return c ? 2 : 1; }),
+			lineColor(Color () { return c ? color("red") : color("black"); }),
+			onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 	}
 	return treemap(blocks, std(gap(5)));
 }
+
+private bool (int, map[KeyModifier, bool]) open(loc ref) = 
+	bool (int butnr, map[KeyModifier, bool] modifiers) {
+		edit(ref);
+		return true;
+	};
