@@ -1,0 +1,8 @@
+#################################################################
+# A list of important aesthetic criteria for the visualization. #
+#################################################################
+
+1. Minimalistic
+
+   Show only that what is of importance in the given view/case and
+   nothing more. This helps getting the message accross.
