@@ -26,9 +26,9 @@ public class Printer {
 	//5
 	
 	public static void main(String arg) {
-		//7
-		System.out.println("Print a line");
 		//6
+		System.out.println("Print a line");
+		//7
 	}
 
 	
@@ -56,6 +56,9 @@ public class Printer {
 		
 	}
 	
+	/**
+	 * Some comment
+	 */
 	public void ifElse(){
 		//14
 		

@@ -11,7 +11,7 @@ import util::ValueUI;
 /*For Ranking*/
 import jeroen::metrics;
 
-bool printEnabled = false;
+bool printEnabled = true;
 
 //eclipse project locations
 public loc simple	 = |project://SimpleJava/|;
@@ -54,26 +54,27 @@ public int cacluateSLOC(Declaration ast){
     */
 
            //case a:/annotation(_) : println("anno <a>");
-     	   case x:/normalAnnotation(_,_) 	 : { println("markerAnnotation _,_ <x> ");}
-     	   case mm:markerAnnotation(_)		 : { println("markerAnnotation _ <mm>  ");}
-     	   case z:/annotation(_) 		     : { println("annotation _ <z> ");}
-     	   case t:/annotationType(_,_)        : {println("annotationType: <t>");}
-     	   case m:/annotationTypeMember(_,_)  : {println("annotationTypeMember: <m>");}
-     	   case b:/annotationTypeMember(_,_,_)        : {println("annotationTypeM b: <b>");}
-     	   case s:/singleMemberAnnotation(_,_): { println("singlemem <s>"); }
+     	   case x:/normalAnnotation(_,_) 	 :;// { println("markerAnnotation _,_ <x> ");}
+     	   case mm:markerAnnotation(_)		 :;// { println("markerAnnotation _ <mm>  ");}
+     	   case z:/annotation(_) 		     :;// { println("annotation _ <z> ");}
+     	   case t:/annotationType(_,_)        :;// {println("annotationType: <t>");}
+     	   case m:/annotationTypeMember(_,_)  : ;//{println("annotationTypeMember: <m>");}
+     	   case b:/annotationTypeMember(_,_,_)        :;// {println("annotationTypeM b: <b>");}
+     	   case s:/singleMemberAnnotation(_,_):;// { println("singlemem <s>"); }
      	   
      	   /*We count all the Declarations except the following*/
-     	   case package(p1,p2)       	  :print("skipped pack <package(p1,p2) >"); //is included in package with one arg
-     	   case variables(p1,p2)          :print("skipped variables <variables(p1,p2) >");
-    	   case parameter(p1,p2,p3)       :print("skipped param <parameter(p1,p2,p3) >");
-     	   case compilationUnit(p1,p2)    :print("skipped compunit <compilationUnit(p1,p2)>" );
-     	   case compilationUnit(p1,p2,p3) :print("skipped compunit <compilationUnit(p1,p2,p3)>" );
-      	  
+     	   case package(p1,p2)       	  :;// print("skipped pack <package(p1,p2) >"); //is included in package with one arg
+     	   case variables(p1,p2)          : ;//print("skipped variables <variables(p1,p2) >");
+    	   case parameter(p1,p2,p3)       : ;//print("skipped param <parameter(p1,p2,p3) >");
+     	   case compilationUnit(p1,p2)    : ;//print("skipped compunit <compilationUnit(p1,p2)>" );
+     	   case compilationUnit(p1,p2,p3) : ;//print("skipped compunit <compilationUnit(p1,p2,p3)>" );
+
      	   case Declaration d             :{count+=1; print("d: <d>"); }
      	  	
-     	  	 
+     	   case \if(ifB, _, elseB) : {  print("conditional if <ifB> else  <elseB>"); count+=2; }
+      	       	  	 
      	   /*Statements skipped*/
-     	   case b:block(_) : print("block <b>");
+     	   case bl:block(_) : ;//print("block <bl>");
      	   
      	   case Statement s              :{count+=1; print("s: <s>"); }
     }
