@@ -1,0 +1,28 @@
+#######################################################
+# A list of usability criteria for the visualization. #
+#######################################################
+
+1. Self-describing
+   
+   The visualisation should be self-describing. At best, no explanation is needed.
+   
+2. Linking
+
+   The visualisation should link to the applicable code fragment so the user can
+   manually inspect the code represented by the visualisation.
+   
+3. Interactive
+
+   The visualisation should be interactive, clicking on a visualisation fragment shows
+   more detailed information or another visualisation.
+   
+4. Clarity
+
+   Items represented in the visualisation which are not the same should also be represented
+   differently, either by a different color, size, shape. It should be clear why the colors 
+   are different and what it means.
+   
+5. Keep it simple
+
+   Don't overwelm the user with too much (irrelevant) information. Instead use interactivity 
+   to allow the user to dive into a particular item of interest.
