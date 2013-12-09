@@ -48,9 +48,9 @@ private lrel[int, int, str, loc] perClass(set[Declaration] ast){
 }
 
 private lrel[int, int, str, loc] perInterface(set[Declaration] ast){
- 	  return for(/cu:compilationUnit(package, _, /i:interface(interfaceName, _,_,classBody) ) <- ast)
-	   //for interface, we return 1 as default for comlexity since there is no implementatioin
-	     append <slocForLoc(), 0, "<fqPackageName(package)>.<interfaceName>" , i@src>;
+  return for(/cu:compilationUnit(package, _, /i:interface(interfaceName, _,_,classBody) ) <- ast)
+   //for interface, we return 1 as default for comlexity since there is no implementatioin
+     append <slocForLoc(), 0, "<fqPackageName(package)>.<interfaceName>" , i@src>;
 }
 
 private int getHighestCcForClass(loc classLoc) {
@@ -63,4 +63,15 @@ private int getHighestCcForClass(loc classLoc) {
 private int slocForLoc(){
 	return 0;
 }
+
+@DOC{pram: 1 or higher}
+public Color determineComplexityColor(int cc){
+	return rgb( toInt((255*cc)/50) , toInt((255*(65-cc))/100), 0);
+}
+
+public void testColorForCC(int cc){
+	render( vcat([ box(fillColor( determineComplexityColor(cc) )) ]) );
+} 
+
+
 	
