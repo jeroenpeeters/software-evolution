@@ -6,3 +6,12 @@
 
    Show only that what is of importance in the given view/case and
    nothing more. This helps getting the message accross.
+   
+2. Colors
+
+   Colors have a meaning, e.g. green is good, red is bad.
+
+3. Size
+
+   Size has a meaning, e.g. relative size between objects means one 
+   is bigger than the other.
