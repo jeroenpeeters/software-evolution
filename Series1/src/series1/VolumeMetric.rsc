@@ -4,7 +4,7 @@ import IO;
 import String;
 import lang::java::m3::AST;
 
-import series1::utils;
+import Utils;
 
 public int sloc(set[Declaration] ast, set[str] comments){
 	int lines = 0;

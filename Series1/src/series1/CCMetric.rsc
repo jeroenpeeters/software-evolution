@@ -1,7 +1,7 @@
 module series1::CCMetric
 
 import lang::java::m3::AST;
-import series1::utils;
+import Utils;
 
 @doc{
 SIG Model; Complexity per unit

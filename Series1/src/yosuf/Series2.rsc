@@ -17,7 +17,7 @@ import util::Editors;
 
 import series1::series1;
 import series1::VolumeMetric;
-import series1::utils;
+import Utils;
 import series1::CCMetric;
 
 
@@ -61,16 +61,6 @@ private int getHighestCcForClass(loc classLoc) {
 //TODO
 private int slocForLoc(){
 	return 0;
-}
-
-@DOC{pram: 1 or higher}
-public Color determineComplexityColor(int cc){
-	//credit for example goes to: http://stackoverflow.com/questions/340209/generate-colors-between-red-and-green-for-a-power-meter
-	return rgb( toInt((255*cc)/45) , toInt((255*(45-cc))/100), 0);
-}
-
-public void testColorForCC(){
-	render( hcat( [ box(fillColor( determineComplexityColor(i) )) | i <- [1..50] ] ) );
 }
 
 
