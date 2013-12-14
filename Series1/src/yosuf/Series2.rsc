@@ -21,7 +21,6 @@ import series1::utils;
 import series1::CCMetric;
 
 
-
 public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
 public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
 public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
@@ -66,12 +65,12 @@ private int slocForLoc(){
 
 @DOC{pram: 1 or higher}
 public Color determineComplexityColor(int cc){
-	return rgb( toInt((255*cc)/50) , toInt((255*(65-cc))/100), 0);
+	//credit for example goes to: http://stackoverflow.com/questions/340209/generate-colors-between-red-and-green-for-a-power-meter
+	return rgb( toInt((255*cc)/45) , toInt((255*(45-cc))/100), 0);
 }
 
-public void testColorForCC(int cc){
-	render( vcat([ box(fillColor( determineComplexityColor(cc) )) ]) );
-} 
+public void testColorForCC(){
+	render( hcat( [ box(fillColor( determineComplexityColor(i) )) | i <- [1..50] ] ) );
+}
 
 
-	
