@@ -24,19 +24,19 @@ import series1::CCMetric;
 public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
 public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
 public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
-public loc viz   = |project://scrumviz/|; // benchmark: <1sec
+//public loc viz   = |project://scrumviz/|; // benchmark: <1sec
 
-public set[Declaration] ast = createAstsFromEclipseProject(viz, false);
+public set[Declaration] ast = createAstsFromEclipseProject(smallsql, false);
 
 
 /**
-* Returns for classes and interfaces:
+* Returns the metrics for classes and interfaces:
 * - sloc
 * - max cc ranking
 * - fqdn
 * - location
 */
-public lrel[int, int, str, loc] calculate(set[Declaration] ast){
+public lrel[int, int, str, loc] getMetricsForAst(set[Declaration] ast){
 	//These two could be done together to optimize.
 	return perClass(ast)  + perInterface(ast);
 }
@@ -55,7 +55,12 @@ private lrel[int, int, str, loc] perInterface(set[Declaration] ast){
 private int getHighestCcForClass(loc classLoc) {
   ast = { createAstsFromEclipseFile(classLoc, false) } ;
   lrel[int ucc, str expr, loc location] cc = ccPerUnit(ast,false);
-  return max(cc.ucc);
+  
+  if(size(cc)>0){
+    return max(cc.ucc);
+  } else {
+    return 0;
+  }
 }
 
 //TODO
@@ -63,4 +68,24 @@ private int slocForLoc(){
 	return 0;
 }
 
+public void visualise(){
+   lrel[int sloc, int cc,str fqdn,loc ref] relations = getMetricsForAst(ast);
+   
+   for(<int sloc, int cc,str fqdn,loc ref> <- relations) {
+     println("cc: <cc>");
+    
+   }
+   
+   println("Relations are:\n <size(relations)> \n.End of Relations");
+   
+   	render( 
+   	  hcat( 
+   	       [ box( onMouseDown( openLocation(relations[i].ref) ), 
+   	              lineWidth(0.8),
+   	              fillColor( determineComplexityColor(relations[i].cc) )
+   	            ) | i <- [0..size(relations)]       
+   	       ] 
+   	      )        
+   	 );
+}
 

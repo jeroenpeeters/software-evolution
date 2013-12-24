@@ -44,13 +44,8 @@ public Figure unitVolumeViz(ast, comments){
 		blocks += box(text("<size>", fontSize(toInt(itemSize/8))), area(itemSize), fillColor(arbColor()),
 			lineWidth(num () { return c ? 2 : 1; }),
 			lineColor(Color () { return c ? color("red") : color("black"); }),
-			onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+			onMouseDown(openLocation(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 	}
 	return treemap(blocks, std(gap(5)));
 }
 
-private bool (int, map[KeyModifier, bool]) open(loc ref) = 
-	bool (int butnr, map[KeyModifier, bool] modifiers) {
-		edit(ref);
-		return true;
-	};

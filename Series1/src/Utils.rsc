@@ -5,6 +5,9 @@ import vis::Figure;
 import vis::Render;
 import util::Math;
 
+import vis::KeySym;
+import util::Editors;
+
 @doc{
 Produces the Fully Qualified package name as a string by recursively unfolding the package nodes in the AST.
 }
@@ -29,3 +32,9 @@ public Color determineComplexityColor(int cc){
 public void testColorForCC(){
 	render( hcat( [ box(fillColor( determineComplexityColor(i) )) | i <- [1..50] ] ) );
 }
+
+public bool (int, map[KeyModifier, bool]) openLocation(loc ref) = 
+	  bool (int butnr, map[KeyModifier, bool] modifiers) {
+		  edit(ref);
+		  return true;
+	};
