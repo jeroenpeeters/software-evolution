@@ -23,7 +23,7 @@ public str fqPackageName(package(Declaration parent, str name)) = "<fqPackageNam
 
 private Color determineGreenToRed(int nr){
 	//credit for example goes to: http://stackoverflow.com/questions/340209/generate-colors-between-red-and-green-for-a-power-meter
-	return rgb( toInt((255*nr)/45) , toInt((255*(45-nr))/100), 0);
+	return rgb( toInt((100*nr)/5) , toInt((255*(80-nr))/100), 0);
 }
 
 @DOC{
@@ -33,7 +33,7 @@ CC above 50 remains red.
 
 pram: 1 or higher
 }
-public Color determineComplexityColor(int cc) = determineGreenToRed(cc);
+public Color determineComplexityColor(int cc) =	determineGreenToRed(cc);
 
 
 @DOC{
@@ -49,7 +49,7 @@ The colors generated start from 2 to 5
 
 pram: 2 or higher which represents the number of classes that share a certain clone}
 public Color duplicationColor(int nr){
-	return determineGreenToRed(nr*10);
+	return determineGreenToRed(nr*10-5);
 }
 
 @DOC{
