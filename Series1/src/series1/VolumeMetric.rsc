@@ -23,8 +23,7 @@ public int sloc(loc code, set[str] comments){
 	int count = 0;
 	list[str] lines = readFileLines(code);
 	for(line <- lines){
-		line = trim(line);
-		if(size(line)>0 && line notin comments){
+		if(size(trim(line))>0 && line notin comments){
 			count += 1;
 		}
 	}
