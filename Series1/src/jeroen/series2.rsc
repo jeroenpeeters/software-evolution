@@ -38,10 +38,12 @@ public Figure unitVolumeCCViz(ast, comments){
 	//real largest = toReal(slocList[0][0]);
 	real largest = 10.0;
 	list[Unit] unitList = composedMetric(ast, comments);
-	for(Unit u <- unitList){
+	for(u:Unit(loc ref) <- unitList){
 		itemSize = (u@volume/largest) * 100;
 		complexity = u@cc;
-		blocks += box(area(itemSize), fillColor(getColor(complexity)));
+		c = false;
+		blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity)),
+			onMouseDown(openLocation(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 	}
 	/*for(<size, name, ref> <- slocList){
 		itemSize = (size/largest) * 100;

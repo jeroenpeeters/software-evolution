@@ -33,9 +33,8 @@ CC above 50 remains red.
 
 pram: 1 or higher
 }
-public Color determineComplexityColor(int cc){
-	determineGreenToRed(cc);
-}
+public Color determineComplexityColor(int cc) = determineGreenToRed(cc);
+
 
 @DOC{
  Creates a few visual boxes to see the CC colors.
