@@ -19,7 +19,7 @@ public lrel[int, str, loc] slocPerUnit(set[Declaration] ast, set[str] comments){
         append <sloc(s@src, comments), "<fqPackageName(package)>.<className>#<name>", m@src>;
 }
 
-private int sloc(loc code, set[str] comments){
+public int sloc(loc code, set[str] comments){
 	int count = 0;
 	list[str] lines = readFileLines(code);
 	for(line <- lines){

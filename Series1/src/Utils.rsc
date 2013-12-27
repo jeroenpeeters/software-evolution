@@ -1,12 +1,18 @@
 module Utils
 
-import lang::java::m3::AST;
+import List;
+import Set;
 import vis::Figure;
 import vis::Render;
 import util::Math;
 
+import IO;
 import vis::KeySym;
 import util::Editors;
+
+import lang::java::jdt::m3::Core;
+import lang::java::jdt::m3::AST;
+import lang::java::m3::AST;
 
 @doc{
 Produces the Fully Qualified package name as a string by recursively unfolding the package nodes in the AST.
@@ -59,3 +65,13 @@ public bool (int, map[KeyModifier, bool]) openLocation(loc ref) =
 		  edit(ref);
 		  return true;
 	};
+	
+public set[str] readComments(loc project) = readComments(createM3FromEclipseProject(project));
+	
+public set[str] readComments(M3 m3){
+	comments = {};
+	for(<_,l> <- m3@documentation){
+		comments += toSet(readFileLines(l));
+	}
+	return comments;
+}

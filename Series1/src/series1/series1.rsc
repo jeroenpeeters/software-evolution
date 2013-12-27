@@ -46,10 +46,10 @@ public void series1(loc project, bool verbose){
 	println("\n## Cyclomatic complexity per unit ##");
 	ccList = ccPerUnit(ast, true);
 	if(verbose){
-		for(cc <- reverse(sort(ccList))){
-			println("<cc[0]> :: <cc[1]> :: (<cc[2]>)");
+		for((name: <cc, ref>) <- /*reverse(sort(ccList))*/ ccList){
+			println("<name> :: <cc> :: (<ref>)");
 		}
-		println("Number of methods with minimal CC of 10 is <size(minCC(10,ccList))>");
+		//println("Number of methods with minimal CC of 10 is <size(minCC(10,ccList))>");
 	}
 	
 	real duplicationPrcnt = duplication(ast, 6, comments);

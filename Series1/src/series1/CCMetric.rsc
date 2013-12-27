@@ -25,7 +25,7 @@ Computes the complexity of the given sub-AST.
 Complexity increases for the following: break, case, catch, continue, do-while, foreach, for, if, if-else, throw, while, 
 return that is not the last statement and for boolean expressions (&&, ||).
 }
-private int cc(Statement stmnt, bool strict){
+public int cc(Statement stmnt, bool strict){
     int i = 1;
     int retCount = -1;
     visit(stmnt){
