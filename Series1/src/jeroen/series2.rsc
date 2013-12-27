@@ -37,26 +37,29 @@ public Figure unitVolumeCCViz(ast, comments){
 	//lrel[int, str, loc] slocList = reverse(sort(slocPerUnit(ast	, comments)));
 	//map[str, tuple[int, loc]] complexityRels = ccPerUnit(ast);
 	//real largest = toReal(slocList[0][0]);
-	real largest = 10.0;
+	int totalSize = 0;
 	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
 	for(class:Class(loc classLoc) <- classUnitMap){
 		blocks = [];
+		int classSize = 0;
 		for(u:Unit(loc methodLoc) <- classUnitMap[class]){
-			println("<classLoc> :: <methodLoc> -\> <u@volume>");
-			itemSize = (u@volume/largest) * 100;
+			//println("<classLoc> :: <methodLoc> -\> <u@volume>");
+			itemSize = u@volume;
 			complexity = u@cc;
 			c = false;
-			blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity)),
+			blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity), lineWidth(0)),
 				onMouseDown(openLocation(methodLoc)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+			classSize += itemSize;
 		}
-		a += treemap(blocks, std(gap(5)));
+		totalSize += classSize;
+		a += box( treemap(blocks), area(classSize), lineColor(color("black")), lineWidth(1));
 	}
 	/*blocks += box(area(itemSize), fillColor(getColor(complexity)),
 		//lineWidth(num () { return c ? 2 : 1; }),
 		//lineColor(Color () { return c ? color("red") : color("black"); }),
 		onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 		*/
-	return vcat(a);
+	return vscrollable(treemap(a, lineWidth(0)), height(totalSize/10), lineWidth(0));
 }
 
 public map[Class, list[Unit]] composedMetric(set[Declaration] ast, set[str] comments){
