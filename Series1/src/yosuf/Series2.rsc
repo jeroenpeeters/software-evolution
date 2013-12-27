@@ -117,14 +117,14 @@ public void visTree(){
 	
 }
 
-private Figure createClassFig(){
+private Figure createClassFig(Declaration d){
 	FProperty CLASS_REL_SIZE = size(40);
-	return ellipse(NO_BORDER, CLASS_REL_SIZE, fillColor("green"));
+	return ellipse(NO_BORDER, CLASS_REL_SIZE, fillColor("green"),  onMouseDown( openLocation(d@src) ) );
 }
 
 public void visClones() {
 
-	loc project=smallsql; // |project://SimpleJava/|;
+	loc project=smallsql;//|project://SBG-JAXB/|;
 	M3 m3 = createM3FromEclipseProject(project);
 	
 	comments = {};
@@ -133,71 +133,32 @@ public void visClones() {
 	}
 
 	ast = createAstsFromEclipseProject(project, false);
-	clones=	findClones(ast, 6, comments);
+	map[list[Line], set[Declaration] ] clones=	findFilteredClones(ast, 6, comments);
 	
 	list[Figure] visibleClones = [];
 	
 	for(clone <- clones ){
 	
 		cloneSize = size( clones[clone] );
+		println("cloneSize: <cloneSize>");
 		
+		ellipse0 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(cloneSize)));
 		
-		if( cloneSize > 1 ){
+		list[Figure] cloneReferences = [];
 		
-			println("cloneSize: <cloneSize>");
-			
-			ellipse0 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(cloneSize)));
-			
-			list[Figure] cloneReferences = [];
-			
-			for(i <- [0..cloneSize]){
-				cloneReferences+= createClassFig();
-			}
-			
-			treeArch = tree (
-				ellipse0,
-				cloneReferences,
-				std(size(50)), std(gap(20)), manhattan(false)
-			);
-			
-			visibleClones+= treeArch;
+		for(d <- clones[clone]){
+			cloneReferences+= createClassFig(d);
 		}
+		
+		treeArch = tree (
+			ellipse0,
+			cloneReferences,
+			std(size(50)), std(gap(20)), manhattan(false)
+		);
+		
+		visibleClones+= treeArch;
+		
 	}
 	
 	render( vcat( visibleClones ) );
-}
-
-
-
-
-
-public void playWithMap(){
-	map[str, int] map1 = ("test": 1);
-	
-
-	map1["test"] = 0;
-	map1+=("test2": 2);
-	
-	
-	for(key <- map1){
-		println("key= <key>, value= <map1[key]>");
-	}
-	
-	
-	//println("\n\nsome unexisting key= <map1["unexisting"]>   \n");
-	
-	println("\n\n  keyin map <"test" in map1>");
-	
-//
-	//list1=[1,2,3];
-	//list2=[1,2,3];
-	//
-	//map[list[int],int] myMap=();
-	//
-	//myMap[list1] = 0;	
-	//println("\nmyMap=<myMap>");
-//
-	//myMap[list2] = 8;
-	//
-	//println("\nmyMap=<myMap>");
 }

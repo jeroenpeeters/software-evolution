@@ -77,3 +77,18 @@ public set[str] readComments(M3 m3){
 	}
 	return comments;
 }
+
+@DOC{returns true if the first list is present in the same order in the second list}
+public bool inSameOrder(list[value] list1, list[value] list2){
+	int length1 = size(list1);
+	int length2 = size(list2);
+	
+	for(i <- [0..length2] && i+length1 <= length2){
+
+		if(list1 == slice(list2, i, length1) ){
+			return true;
+		}
+	}
+	
+	return false;
+}
