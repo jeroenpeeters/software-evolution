@@ -89,3 +89,47 @@ public void visualise(){
    	 );
 }
 
+
+
+
+public void visTree(){
+	box1 = box(size(40), fillColor("green"));
+	box2 = box(size(40), fillColor("blue"));
+	
+	ellipse1 = ellipse(size(80), fillColor(duplicationColor(2)));
+		
+	tree1 = tree (
+		ellipse1,
+		[box1, box2],
+		std(size(50)), std(gap(20)), manhattan(false)
+	);
+	
+
+	box3 = box(size(40), fillColor("green"));
+	box4 = box(size(40), fillColor("blue"));
+	
+	ellipse2 = ellipse(size(80), fillColor(duplicationColor(3)));
+		
+	tree2 = tree (
+		ellipse2,
+		[box3, box4],
+		std(size(50)), std(gap(20)), manhattan(false)
+	);
+	
+	
+	render( hcat([
+			 tree1,
+			 tree2
+			])
+	 );
+	
+	
+//	t2 = tree(box(fillColor("green")),
+//          [ box(fillColor("red")),
+//     	    box(fillColor("blue"))
+//     	  ],
+//          std(size(50)), std(gap(20)), manhattan(false)
+//    	);
+//render(t2);
+	
+}
