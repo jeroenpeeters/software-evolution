@@ -14,6 +14,9 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import lang::java::m3::AST;
 
+
+public FProperty NO_BORDER= lineWidth(0);
+
 @doc{
 Produces the Fully Qualified package name as a string by recursively unfolding the package nodes in the AST.
 }
@@ -49,7 +52,7 @@ The colors generated start from 2 to 5
 
 pram: 2 or higher which represents the number of classes that share a certain clone}
 public Color duplicationColor(int nr){
-	return determineGreenToRed(nr*10-5);
+	return determineGreenToRed(nr*10-10);
 }
 
 @DOC{

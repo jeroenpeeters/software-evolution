@@ -12,13 +12,13 @@ import lang::java::m3::AST;
 import vis::Figure;
 import vis::Render;
 import vis::KeySym;
-
 import util::Editors;
 
+import Utils;
 import series1::series1;
 import series1::VolumeMetric;
-import Utils;
 import series1::CCMetric;
+import series1::DuplicationMetric;
 
 
 public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
@@ -91,28 +91,20 @@ public void visualise(){
 
 
 
-
 public void visTree(){
-	box1 = box(size(40), fillColor("green"));
-	box2 = box(size(40), fillColor("blue"));
-	
-	ellipse1 = ellipse(size(80), fillColor(duplicationColor(2)));
-		
+
+	ellipse1 = ellipse(NO_BORDER,size(80), fillColor(duplicationColor(3)));
 	tree1 = tree (
 		ellipse1,
-		[box1, box2],
+		[createClassFig(), createClassFig()],
 		std(size(50)), std(gap(20)), manhattan(false)
 	);
 	
 
-	box3 = box(size(40), fillColor("green"));
-	box4 = box(size(40), fillColor("blue"));
-	
-	ellipse2 = ellipse(size(80), fillColor(duplicationColor(3)));
-		
+	ellipse2 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(2)));		
 	tree2 = tree (
 		ellipse2,
-		[box3, box4],
+		[createClassFig(), createClassFig(),createClassFig(),createClassFig(), createClassFig()],
 		std(size(50)), std(gap(20)), manhattan(false)
 	);
 	
@@ -123,13 +115,89 @@ public void visTree(){
 			])
 	 );
 	
+}
+
+private Figure createClassFig(){
+	FProperty CLASS_REL_SIZE = size(40);
+	return ellipse(NO_BORDER, CLASS_REL_SIZE, fillColor("green"));
+}
+
+public void visClones() {
+
+	loc project=smallsql; // |project://SimpleJava/|;
+	M3 m3 = createM3FromEclipseProject(project);
 	
-//	t2 = tree(box(fillColor("green")),
-//          [ box(fillColor("red")),
-//     	    box(fillColor("blue"))
-//     	  ],
-//          std(size(50)), std(gap(20)), manhattan(false)
-//    	);
-//render(t2);
+	comments = {};
+	for(<_,l> <- m3@documentation){
+		comments += toSet(readFileLines(l));
+	}
+
+	ast = createAstsFromEclipseProject(project, false);
+	clones=	findClones(ast, 6, comments);
 	
+	list[Figure] visibleClones = [];
+	
+	for(clone <- clones ){
+	
+		cloneSize = size( clones[clone] );
+		
+		
+		if( cloneSize > 1 ){
+		
+			println("cloneSize: <cloneSize>");
+			
+			ellipse0 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(cloneSize)));
+			
+			list[Figure] cloneReferences = [];
+			
+			for(i <- [0..cloneSize]){
+				cloneReferences+= createClassFig();
+			}
+			
+			treeArch = tree (
+				ellipse0,
+				cloneReferences,
+				std(size(50)), std(gap(20)), manhattan(false)
+			);
+			
+			visibleClones+= treeArch;
+		}
+	}
+	
+	render( vcat( visibleClones ) );
+}
+
+
+
+
+
+public void playWithMap(){
+	map[str, int] map1 = ("test": 1);
+	
+
+	map1["test"] = 0;
+	map1+=("test2": 2);
+	
+	
+	for(key <- map1){
+		println("key= <key>, value= <map1[key]>");
+	}
+	
+	
+	//println("\n\nsome unexisting key= <map1["unexisting"]>   \n");
+	
+	println("\n\n  keyin map <"test" in map1>");
+	
+//
+	//list1=[1,2,3];
+	//list2=[1,2,3];
+	//
+	//map[list[int],int] myMap=();
+	//
+	//myMap[list1] = 0;	
+	//println("\nmyMap=<myMap>");
+//
+	//myMap[list2] = 8;
+	//
+	//println("\nmyMap=<myMap>");
 }
