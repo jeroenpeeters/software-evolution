@@ -22,7 +22,8 @@ public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
 public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
 public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
 
-private data Unit = Unit(loc);
+private data Class = Class(loc class);
+private data Unit = Unit( loc method);
 private anno int Unit @ cc;
 private anno int Unit @ volume;
 
@@ -32,41 +33,45 @@ public void main(loc project){
 }
 
 public Figure unitVolumeCCViz(ast, comments){
-	blocks = [];
+	a = [];
 	//lrel[int, str, loc] slocList = reverse(sort(slocPerUnit(ast	, comments)));
 	//map[str, tuple[int, loc]] complexityRels = ccPerUnit(ast);
 	//real largest = toReal(slocList[0][0]);
 	real largest = 10.0;
-	list[Unit] unitList = composedMetric(ast, comments);
-	for(u:Unit(loc ref) <- unitList){
-		itemSize = (u@volume/largest) * 100;
-		complexity = u@cc;
-		c = false;
-		blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity)),
-			onMouseDown(openLocation(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
+	for(class:Class(loc classLoc) <- classUnitMap){
+		blocks = [];
+		for(u:Unit(loc methodLoc) <- classUnitMap[class]){
+			println("<classLoc> :: <methodLoc> -\> <u@volume>");
+			itemSize = (u@volume/largest) * 100;
+			complexity = u@cc;
+			c = false;
+			blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity)),
+				onMouseDown(openLocation(methodLoc)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+		}
+		a += treemap(blocks, std(gap(5)));
 	}
-	/*for(<size, name, ref> <- slocList){
-		itemSize = (size/largest) * 100;
-		tuple[int cc, loc r] info = complexityRels[name];
-		int complexity = info.cc;
-		c = false;
-		blocks += box(area(itemSize), fillColor(getColor(complexity)),
-			//lineWidth(num () { return c ? 2 : 1; }),
-			//lineColor(Color () { return c ? color("red") : color("black"); }),
-			onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
-	}*/
-	return treemap(blocks, std(gap(5)));
+	/*blocks += box(area(itemSize), fillColor(getColor(complexity)),
+		//lineWidth(num () { return c ? 2 : 1; }),
+		//lineColor(Color () { return c ? color("red") : color("black"); }),
+		onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+		*/
+	return vcat(a);
 }
 
-public list[Unit] composedMetric(set[Declaration] ast, set[str] comments){
-	list[Unit] unitList = [];
-    for(/compilationUnit(package, _, /class(className, _,_, /m:method(_, name, _, _, s) )) <- ast){
+public map[Class, list[Unit]] composedMetric(set[Declaration] ast, set[str] comments){
+	map[Class, list[Unit]] classUnitMap = ();
+    for(/compilationUnit(package, _, /c:class(className, _,_, /m:method(_, name, _, _, s) )) <- ast){
+    	Class clazz = Class(c@src);
     	Unit u = Unit(m@src);
     	u@cc = cc(s, false);
     	u@volume = sloc(s@src, comments);
-    	unitList += u;
+    	if(clazz notin classUnitMap){
+    		classUnitMap[clazz] = [];
+    	}
+    	classUnitMap[clazz] += [u];
     }
-    return unitList;
+    return classUnitMap;
 }
 
 private str getColor(int cc) {
