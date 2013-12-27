@@ -13,6 +13,7 @@ import vis::Figure;
 import vis::Render;
 import vis::KeySym;
 import util::Editors;
+import util::Benchmark;
 
 import Utils;
 import series1::series1;
@@ -117,14 +118,14 @@ public void visTree(){
 	
 }
 
-private Figure createClassFig(Declaration d){
-	FProperty CLASS_REL_SIZE = size(40);
-	return ellipse(NO_BORDER, CLASS_REL_SIZE, fillColor("green"),  onMouseDown( openLocation(d@src) ) );
+private Figure createClassFig(Declaration d, int figSize){
+	return ellipse(NO_BORDER, size(figSize), fillColor("green"),  onMouseDown( openLocation(d@src) ) );
 }
 
 public void visClones() {
+	int startTime = getMilliTime();
 
-	loc project=smallsql;//|project://SBG-JAXB/|;
+	loc project=|project://SBG-JAXB/|;
 	M3 m3 = createM3FromEclipseProject(project);
 	
 	comments = {};
@@ -142,12 +143,12 @@ public void visClones() {
 		cloneSize = size( clones[clone] );
 		println("cloneSize: <cloneSize>");
 		
-		ellipse0 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(cloneSize)));
+		ellipse0 = ellipse(NO_BORDER, size( size(clone)*3 ), fillColor("orange"));
 		
 		list[Figure] cloneReferences = [];
 		
 		for(d <- clones[clone]){
-			cloneReferences+= createClassFig(d);
+			cloneReferences+= createClassFig(d, size(clone)*2);
 		}
 		
 		treeArch = tree (
@@ -160,5 +161,7 @@ public void visClones() {
 		
 	}
 	
-	render( vcat( visibleClones ) );
+	render( vcat( visibleClones, vgap(50) ) );
+	
+	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
