@@ -57,7 +57,7 @@ public Color duplicationColor(int nr){
  Creates a few visual boxes to see the CC colors.
 }
 public void testColorForDuplication(){
-	render( hcat( [ box(fillColor( determineDuplicationColor(i) )) | i <- [1..6] ] ) );
+	render( hcat( [ box(fillColor( duplicationColor(i) )) | i <- [1..6] ] ) );
 }
 
 public bool (int, map[KeyModifier, bool]) openLocation(loc ref) = 
