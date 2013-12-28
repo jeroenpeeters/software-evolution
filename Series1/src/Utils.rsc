@@ -79,8 +79,11 @@ public set[str] readComments(M3 m3){
 	return comments;
 }
 
-@DOC{returns true if the first list is present in the same order in the second list}
-public bool inSameOrder1(list[value] list1, list[value] list2){
+@DOC{
+For better performance use inSameOrder(list,list)
+returns true if the first list is present in the same order in the second list
+}
+public bool inSameOrder2(list[value] list1, list[value] list2){
 	
 	for(i <- [0..size(list2)] && i+size(list1) <= size(list2)){
 		
@@ -92,25 +95,26 @@ public bool inSameOrder1(list[value] list1, list[value] list2){
 	return false;
 }
 
-public bool inSameOrder(list[value] list1, list[value] list2){
-	return list1 < list2 || list1==list2;
+@DOC{ 
+inSameOrder2(list,list) could also be used, but this function performs better.
+This function is written because the sublist function of Rascal (list1<=list2) has a bug.
+Returns true if the first list is a sublist of the second list, preserving their order.
 }
-
-public bool inSameOrder2(list[value] list1, list[value] list2){
+public bool inSameOrder(list[value] list1, list[value] list2){
 	int size1 = size(list1);
 	int size2 = size(list2);	
+	
 	if(size1 < 1 ){
 		return true;
 	}
+	
 	if(size2 < 1 || size2 < size1) {
 		return false;
 	}
 	
 	for(int i <- [0..size2] && (size2 - i) >= size1 ){
-
 		
 		bool found = false;
-		
 		for(ii <- [0..size1] && (size2 - i) >= size1){
 		    
 		    if(list1[ii] != list2[i+ii]) {
@@ -118,13 +122,11 @@ public bool inSameOrder2(list[value] list1, list[value] list2){
 		    	break;
 		    } else {   
 		    	found = true;
-		    }
-		   
+		    }   
 		}
 		if(found){
 			return true;
 		}
 	}
-
 	return false;
 }

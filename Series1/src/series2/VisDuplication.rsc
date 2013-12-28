@@ -25,6 +25,7 @@ public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
 public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
 public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
 
+private int MINIMUM_CLONE_BLOCK = 6;
 private str CLASS_COLOR = "green";
 private str CLONE_COLOR ="orange";
 
@@ -61,15 +62,9 @@ public void visualizeClones(loc project) {
 
 private map[list[str], set[loc] ] findClones(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
-	
-	comments = {};
-	for(<_,line> <- m3@documentation){
-		comments += toSet(readFileLines(line));
-	}
-	
 	ast = createAstsFromEclipseProject(project, false);
 	
-	return findFilteredClones(ast, 6, comments);
+	return findFilteredClones(ast, MINIMUM_CLONE_BLOCK, readComments(m3));
 } 
 
 private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
