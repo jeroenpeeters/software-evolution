@@ -12,12 +12,12 @@ import lang::java::jdt::m3::AST;
 import lang::java::m3::AST;
 import Utils;
 
-private data Line = Line(str);
+public data Line = Line(str, int);
 private anno int Line @ nr;
 
 public Line makeLine(str code, int lineNum){
-	l = Line(code);
-	l@nr = lineNum;
+	l = Line(code, lineNum);
+	//l@nr = lineNum;
 	return l;
 }
 
@@ -158,59 +158,53 @@ public map[list[Line], set[Declaration] ] findClones(set[Declaration] ast, block
 }
 
 
-//ignores comments and imports
-private map[Declaration, list[Line] ] mapUnitsTolines(set[Declaration] ast, set[str] comments){
-	map[Declaration, list[Line] ] unitToLines =();
-
-    for(/c:compilationUnit(package, imports, _) <- ast){
-
-    	unitLines = [];
-    	int lineNum = 0;
-    	
-		for(line <- readFileLines(c@src)){
-			line = trim(line);
-			if(line notin comments && size(line)>0  && line notin imports){
-			    //line = trim(line);
-				unitLines += makeLine(line, lineNum);
-			}
-			
-			lineNum;
-		}
-		    	
-    	unitToLines+= (c: unitLines);	
+private map[loc, list[str] ] mapUnitsTolines(set[Declaration] ast, set[str] comments){	
+	map[loc, list[str] ] unitToLines =();
+	
+    for(/c:compilationUnit( package, imports, types) <- ast){   	
+    	unitLines =[];
+    	for(line <- readFileLines(c@src)){   	
+			tLine=trim(line);
+		
+			if(size(tLine) > 0 && !startsWith(tLine, "import") && tLine notin comments && line notin comments){
+				unitLines+=tLine;
+			}					
+    	}	
+    	unitToLines[c@src] = unitLines;   	
     }
+    
     return unitToLines;
 }
 
-public map[list[Line], set[Declaration] ] findFilteredClones(set[Declaration] ast, blockSize, set[str] comments){
-	map[Declaration, list[Line] ] unitToLines = mapUnitsTolines(ast, comments);
+public map[list[str], set[loc] ] findFilteredClones(set[Declaration] ast, blockSize, set[str] comments){
+	map[loc, list[str] ] unitToLines = mapUnitsTolines(ast, comments);
 	
-	set[Declaration] checkedUnits ={};
+	set[loc] checkedUnits ={};
 	
-	map[list[Line], set[Declaration] ] clones = ();
+	map[list[str], set[loc] ] clones = ();
 	
     int cloneCount=0;
     for(unit <- unitToLines){
     	checkedUnits+=unit;
     	
-    	list[Line] unitLines = unitToLines[unit];
+    	list[str] unitLines = unitToLines[unit];
     	int nrOfLines = size(unitLines);
     	
     	int presentIndex = 0;
 
     	while(presentIndex+blockSize < nrOfLines) {
    		
-    		list[Line] presentBlock = slice(unitLines, presentIndex, blockSize);
+    		list[str] presentBlock = slice(unitLines, presentIndex, blockSize);
     		
     		 for(otherUnit <- unitToLines){
     		 
     		 	if(otherUnit != unit && otherUnit notin checkedUnits ){
     		 
-    		 		list[Line] otherUnitLines = unitToLines[otherUnit];
+    		 		list[str] otherUnitLines = unitToLines[otherUnit];
     		 		
     		 		
-    		 		if(inSameOrder(presentBlock, otherUnitLines)){
-    		 			//println("We found a clone <presentBlock> inUnit <unit> and otherUnit <otherUnit>");
+    		 		if(inSameOrder2(presentBlock, otherUnitLines)){
+    		 			println("We found a clone <presentBlock> in otherUnit <otherUnitLines>");
     		 			
     		 			int tempBlockSize = blockSize+1;	
     		 			
@@ -218,14 +212,16 @@ public map[list[Line], set[Declaration] ] findFilteredClones(set[Declaration] as
     		 			while(!noMore && presentIndex+tempBlockSize < nrOfLines) {    		 		
     		 				newBlock = slice(unitLines, presentIndex, tempBlockSize);    		 			
     		 				
-    		 				if(inSameOrder(newBlock, otherUnitLines)) {
+    		 				if(inSameOrder2(newBlock, otherUnitLines)) {
     		 					presentBlock = newBlock;
+    		 					tempBlockSize+=1;
     		 				} else {
     		 					noMore=true;
     		 				}
     		 				
-    		 				tempBlockSize+=1;
+    		 				
     		 			}
+    		 				 			
     		 			if( presentBlock in clones ) {
     		 				previosUnits = clones[presentBlock];
     		 				clones[presentBlock] = previosUnits+={unit,otherUnit};
@@ -244,7 +240,7 @@ public map[list[Line], set[Declaration] ] findFilteredClones(set[Declaration] as
     	}
     }
     
-    println("\nClones count= <cloneCount>");
+    //println("\nClones count= <cloneCount>");
 	return clones;
 }
 

@@ -118,14 +118,16 @@ public void visTree(){
 	
 }
 
-private Figure createClassFig(Declaration d, int figSize){
-	return ellipse(NO_BORDER, size(figSize), fillColor("green"),  onMouseDown( openLocation(d@src) ) );
+private Figure createClassFig(list[str] clonedLines, loc location, int figSize){
+	str toPrint = "\nClonedLines\n <clonedLines>\nDeclarations\n<location>";
+	return ellipse(NO_BORDER, size(figSize), fillColor("green"),  onMouseDown( openLocation(location) ) );
 }
 
 public void visClones() {
 	int startTime = getMilliTime();
 
-	loc project=|project://SBG-JAXB/|;
+
+	loc project=|project://SBG-Core/|;
 	M3 m3 = createM3FromEclipseProject(project);
 	
 	comments = {};
@@ -134,21 +136,21 @@ public void visClones() {
 	}
 
 	ast = createAstsFromEclipseProject(project, false);
-	map[list[Line], set[Declaration] ] clones=	findFilteredClones(ast, 6, comments);
+	map[list[str], set[loc] ] clones=	findFilteredClones(ast, 6, comments);
 	
 	list[Figure] visibleClones = [];
 	
 	for(clone <- clones ){
 	
 		cloneSize = size( clones[clone] );
-		println("cloneSize: <cloneSize>");
+		//println("cloneSize: <cloneSize>");
 		
 		ellipse0 = ellipse(NO_BORDER, size( size(clone)*3 ), fillColor("orange"));
 		
 		list[Figure] cloneReferences = [];
 		
-		for(d <- clones[clone]){
-			cloneReferences+= createClassFig(d, size(clone)*2);
+		for(decl <- clones[clone]){
+			cloneReferences+= createClassFig(clone, decl, size(clone)*2);
 		}
 		
 		treeArch = tree (

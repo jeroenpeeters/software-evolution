@@ -80,16 +80,51 @@ public set[str] readComments(M3 m3){
 }
 
 @DOC{returns true if the first list is present in the same order in the second list}
-public bool inSameOrder(list[value] list1, list[value] list2){
-	int length1 = size(list1);
-	int length2 = size(list2);
+public bool inSameOrder1(list[value] list1, list[value] list2){
 	
-	for(i <- [0..length2] && i+length1 <= length2){
+	for(i <- [0..size(list2)] && i+size(list1) <= size(list2)){
+		
+		if(list1 == slice(list2, i, size(list1)) ){
+			return true;
+		}
+		
+	}
+	return false;
+}
 
-		if(list1 == slice(list2, i, length1) ){
+public bool inSameOrder(list[value] list1, list[value] list2){
+	return list1 < list2 || list1==list2;
+}
+
+public bool inSameOrder2(list[value] list1, list[value] list2){
+	int size1 = size(list1);
+	int size2 = size(list2);	
+	if(size1 < 1 ){
+		return true;
+	}
+	if(size2 < 1 || size2 < size1) {
+		return false;
+	}
+	
+	for(int i <- [0..size2] && (size2 - i) >= size1 ){
+
+		
+		bool found = false;
+		
+		for(ii <- [0..size1] && (size2 - i) >= size1){
+		    
+		    if(list1[ii] != list2[i+ii]) {
+		    	found = false;
+		    	break;
+		    } else {   
+		    	found = true;
+		    }
+		   
+		}
+		if(found){
 			return true;
 		}
 	}
-	
+
 	return false;
 }
