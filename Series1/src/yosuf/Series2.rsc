@@ -14,6 +14,7 @@ import vis::Render;
 import vis::KeySym;
 import util::Editors;
 import util::Benchmark;
+import Prelude::Map;
 
 import Utils;
 import series1::series1;
@@ -29,6 +30,8 @@ public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
 
 public set[Declaration] ast = createAstsFromEclipseProject(smallsql, false);
 
+private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)\nThe size of the clones represent the relative clone size between the clones.";
+	
 
 /**
 * Returns the metrics for classes and interfaces:
@@ -69,101 +72,78 @@ private int slocForLoc(){
 	return 0;
 }
 
-public void visualise(){
-   lrel[int sloc, int cc,str fqdn,loc ref] relations = getMetricsForAst(ast);
-   
-   for(<int sloc, int cc,str fqdn,loc ref> <- relations) {
-     println("cc: <cc>");
-    
-   }
-   
-   println("Relations are:\n <size(relations)> \n.End of Relations");
-   
-   	render( 
-   	  hcat( 
-   	       [ box( onMouseDown( openLocation(relations[i].ref) ), 
-   	              lineWidth(0.8),
-   	              fillColor( determineComplexityColor(relations[i].cc) )
-   	            ) | i <- [0..size(relations)]       
-   	       ] 
-   	      )        
-   	 );
-}
-
-
-
-public void visTree(){
-
-	ellipse1 = ellipse(NO_BORDER,size(80), fillColor(duplicationColor(3)));
-	tree1 = tree (
-		ellipse1,
-		[createClassFig(), createClassFig()],
-		std(size(50)), std(gap(20)), manhattan(false)
-	);
-	
-
-	ellipse2 = ellipse(NO_BORDER, size(150), fillColor(duplicationColor(2)));		
-	tree2 = tree (
-		ellipse2,
-		[createClassFig(), createClassFig(),createClassFig(),createClassFig(), createClassFig()],
-		std(size(50)), std(gap(20)), manhattan(false)
-	);
-	
-	
-	render( hcat([
-			 tree1,
-			 tree2
-			])
-	 );
-	
-}
-
 private Figure createClassFig(list[str] clonedLines, loc location, int figSize){
 	str toPrint = "\nClonedLines\n <clonedLines>\nDeclarations\n<location>";
-	return ellipse(NO_BORDER, size(figSize), fillColor("green"),  onMouseDown( openLocation(location) ) );
+	
+	return ellipse(	NO_BORDER,
+					size(15), 
+					fillColor("green"),  
+					onMouseDown( openLocation(location) )
+				);
 }
 
-public void visClones() {
-	int startTime = getMilliTime();
-
-
-	loc project=|project://SBG-Core/|;
+private map[list[str], set[loc] ] findClones(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
 	
 	comments = {};
-	for(<_,l> <- m3@documentation){
-		comments += toSet(readFileLines(l));
+	for(<_,line> <- m3@documentation){
+		comments += toSet(readFileLines(line));
 	}
-
+	
 	ast = createAstsFromEclipseProject(project, false);
 	map[list[str], set[loc] ] clones=	findFilteredClones(ast, 6, comments);
 	
-	list[Figure] visibleClones = [];
+	return clones;
+} 
+
+private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
+	int mapSize =0;
 	
-	for(clone <- clones ){
-	
-		cloneSize = size( clones[clone] );
-		//println("cloneSize: <cloneSize>");
-		
-		ellipse0 = ellipse(NO_BORDER, size( size(clone)*3 ), fillColor("orange"));
-		
-		list[Figure] cloneReferences = [];
-		
-		for(decl <- clones[clone]){
-			cloneReferences+= createClassFig(clone, decl, size(clone)*2);
-		}
-		
-		treeArch = tree (
-			ellipse0,
-			cloneReferences,
-			std(size(50)), std(gap(20)), manhattan(false)
-		);
-		
-		visibleClones+= treeArch;
-		
+	set[loc] allLocations = {};
+	for(clone <- clones){
+		mapSize+=1;
+		allLocations += clones[clone]; 
 	}
 	
-	render( vcat( visibleClones, vgap(50) ) );
+	list[str] projectDetails = ["Clones: <mapSize> \nFiles associated: <size(allLocations)>", CLONE_DESCRIPTION];
+	
+	return makeTextBox("<project> Summary of Duplications", projectDetails);
+}
+
+private list[Figure] makeTextBox(str title, list[str] messages){
+	visMessages = for(message <- messages) 
+		append  text(message, fontColor("black"), fontSize(10), left());
+	
+	visMessages = [text(title, fontColor("green"), fontSize(16), left())] + visMessages;
+	
+	return [vcat(visMessages, std(gap(10)), left())];
+}
+
+public void visualizeClones(loc project) {
+	//loc project=|project://SBG-Core/|;
+	int startTime = getMilliTime();
+	
+	map[list[str], set[loc] ] clones=	findClones(project);
+	
+	list[Figure] visibleObjectsToDraw = [];
+	
+	for(clone <- clones ){
+		int cloneSize = size(clone);
+		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor("orange"));
+		
+		//list[Figure]
+		cloneReferences = for(decl <- clones[clone])
+			append createClassFig(clone, decl, cloneSize * 2);
+		
+		cloneTree = tree (cloneEllipse, cloneReferences,
+			std(size(50)), std(gap(20)), manhattan(false) );
+		
+		visibleObjectsToDraw+= cloneTree;
+	}
+	
+	visibleObjectsToDraw = makeProjectSummary(project, clones) +  visibleObjectsToDraw;
+	
+	render( pack( visibleObjectsToDraw, gap(50)) );
 	
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
