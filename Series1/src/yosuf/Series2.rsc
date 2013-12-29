@@ -91,9 +91,11 @@ private map[list[str], set[loc] ] findClones(loc project){
 	}
 	
 	ast = createAstsFromEclipseProject(project, false);
-	map[list[str], set[loc] ] clones=	findFilteredClones(ast, 6, comments);
 	
-	return clones;
+	findClonesByMap(ast, 6, comments);
+	//map[list[str], set[loc] ] clones=	findFilteredClones(ast, 6, comments);
+	
+	return ();
 } 
 
 private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
@@ -125,6 +127,8 @@ public void visualizeClones(loc project) {
 	
 	map[list[str], set[loc] ] clones=	findClones(project);
 	
+	//Experimental TODO
+	return;
 	list[Figure] visibleObjectsToDraw = [];
 	
 	for(clone <- clones ){

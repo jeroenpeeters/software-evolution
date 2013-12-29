@@ -9,9 +9,26 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import lang::java::m3::AST;
+import util::Benchmark;
 
 import Utils;
 
+private	map[value, int] benchmark=("":0);
+
+private void addToBenchmark(value key, int val){
+	if(key in benchmark){
+		int oldVal = benchmark[key];
+		benchmark[key] = oldVal+ val;
+	} else {
+		benchmark[key] = val;
+	}
+}
+
+private void printBenchmark(){	
+	for(mark <- benchmark){
+		println("<benchmark[mark]> ms for <mark>");
+	}
+}
 
 @DOC{
 
@@ -38,13 +55,19 @@ So, how does this algorithm works?
 5. Finally, a map of clones to their associated locations are baked and returned.
 }
 public map[list[str], set[loc] ] findFilteredClones(set[Declaration] ast, blockSize, set[str] comments){
+	int startTime = getMilliTime();
+
 	map[loc, list[str] ] unitToLines = mapUnitsTolines(ast, comments);
+
+	addToBenchmark("unitToLines", getMilliTime() - startTime);
 	
 	set[loc] checkedUnits ={};
 	map[list[str], set[loc] ] clones = ();
 	
     for(unit <- unitToLines){
     	checkedUnits+=unit;
+    	
+    	int unitStart = getMilliTime();
     	
     	list[str] unitLines = unitToLines[unit];
     	int nrOfLines = size(unitLines);
@@ -60,7 +83,10 @@ public map[list[str], set[loc] ] findFilteredClones(set[Declaration] ast, blockS
     		 	if(otherUnit != unit && otherUnit notin checkedUnits ){
     		 		list[str] otherUnitLines = unitToLines[otherUnit];
     		 		
+    		 		int orderStart = getMilliTime();
+    		 		
     		 		if(inSameOrder(presentBlock, otherUnitLines)){
+    		 			int foundStart = getMilliTime();
     		 			println("We found a clone <presentBlock> in otherUnit <otherUnitLines>");
     		 			
     		 			int tempBlockSize = blockSize+1;
@@ -83,13 +109,20 @@ public map[list[str], set[loc] ] findFilteredClones(set[Declaration] ast, blockS
     		 				clones[presentBlock] = {unit,otherUnit};
     		 			}
     		 			presentIndex = presentIndex+tempBlockSize - blockSize;
+    		 			
+    		 			addToBenchmark("foundAndIncrementing", getMilliTime()-foundStart);
     		 		}	
+    		 		addToBenchmark("inSameOrderTotal", getMilliTime()-orderStart);
     		 	}
     		 } 
     		presentIndex+=1;
     	}
+    	
+	    addToBenchmark("block", getMilliTime() - unitStart);
     }
-
+    
+	addToBenchmark("total", getMilliTime() - startTime);
+	printBenchmark();
 	return clones;
 }
 
@@ -113,6 +146,75 @@ private map[loc, list[str] ] mapUnitsTolines(set[Declaration] ast, set[str] comm
     }
     
     return unitToLines;
+}
+
+
+private map[list[str], list[loc]] allBlocksToAllLocs = ();
+
+private void addBlocksToLoc(list[str] unitLines, loc location, int blockSize){
+	int addBlockStart = getMilliTime();
+	
+	int nrOfLines = size(unitLines);
+	list[list[str]] blocks = [slice(unitLines,s,e) | s <- [0..nrOfLines], e <- [blockSize..blockSize+1], s+e <= nrOfLines];
+	
+	for(block <- blocks){
+		if(block in allBlocksToAllLocs){
+			previousLocs = allBlocksToAllLocs[block];
+			allBlocksToAllLocs[block] = previousLocs+=location;
+		} else {
+			allBlocksToAllLocs[block] = [location];
+		}
+	}
+	addToBenchmark("addBlocksToLoc", getMilliTime() - addBlockStart);
+}
+
+
+public map[list[str], set[loc] ] findClonesByMap(set[Declaration] ast, blockSize, set[str] comments){
+	int startTime = getMilliTime();
+
+	map[loc, list[str] ] unitToLines = mapUnitsTolines(ast, comments);
+
+	addToBenchmark("unitToLines", getMilliTime() - startTime);
+	
+	int slicingStart = getMilliTime();
+	
+	for(unit <- unitToLines) {   
+	    list[str] unitLines = unitToLines[unit];  	
+		addBlocksToLoc(unitLines, unit, blockSize);
+	}
+
+	addToBenchmark("SlicingAndAdding", getMilliTime() - slicingStart);
+
+	map[list[str], list[loc]] unitsWithClone = getUnitsWithDuplication();
+
+	printBenchmark();
+
+	return ();
+}
+
+private map[list[str], list[loc]]  getUnitsWithDuplication() {
+	map[list[str], list[loc]] unitsWithDuplication =();
+	
+	for(block <- allBlocksToAllLocs){
+	
+		if(size( allBlocksToAllLocs[block] ) > 1 ){
+			unitsWithDuplication[block] = allBlocksToAllLocs[block];
+		}
+	}
+	
+	return unitsWithDuplication;
+}
+
+private list[list[loc]] getPairedDuplicatedUnits(){
+	map[list[str], list[loc]] unitsWithDuplication = getUnitsWithDuplication();
+	
+	list[list[loc]] paired=[];
+	
+	for(block < - unitsWithDuplication) {
+		paired += unitsWithDuplication[block];
+	}
+	
+	return paired;
 }
 
 //Deprecated
