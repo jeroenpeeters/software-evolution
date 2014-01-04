@@ -14,7 +14,6 @@ import vis::Render;
 import vis::KeySym;
 import util::Editors;
 import util::Benchmark;
-import Prelude::Map;
 
 import Utils;
 import series1::series1;
@@ -72,7 +71,7 @@ private int slocForLoc(){
 	return 0;
 }
 
-private Figure createClassFig(list[str] clonedLines, loc location, int figSize){
+private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
 	str toPrint = "\nClonedLines\n <clonedLines>\nDeclarations\n<location>";
 	
 	return ellipse(	NO_BORDER,
@@ -92,19 +91,16 @@ private map[list[str], set[loc] ] findClones(loc project){
 	
 	ast = createAstsFromEclipseProject(project, false);
 	
-	findClonesByMap(ast, 6, comments);
-	//map[list[str], set[loc] ] clones=	findFilteredClones(ast, 6, comments);
-	
-	return ();
+	return findClonesByMap(ast, 6, comments);
 } 
 
 private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
 	int mapSize =0;
 	
-	set[loc] allLocations = {};
+	list[loc] allLocations = [];
 	for(clone <- clones){
 		mapSize+=1;
-		allLocations += clones[clone]; 
+		allLocations += toList(clones[clone]); 
 	}
 	
 	list[str] projectDetails = ["Clones: <mapSize> \nFiles associated: <size(allLocations)>", CLONE_DESCRIPTION];
@@ -122,13 +118,11 @@ private list[Figure] makeTextBox(str title, list[str] messages){
 }
 
 public void visualizeClones(loc project) {
-	//loc project=|project://SBG-Core/|;
+	//loc project=|project://SimpleJava/|;
 	int startTime = getMilliTime();
 	
 	map[list[str], set[loc] ] clones=	findClones(project);
 	
-	//Experimental TODO
-	return;
 	list[Figure] visibleObjectsToDraw = [];
 	
 	for(clone <- clones ){
@@ -137,7 +131,7 @@ public void visualizeClones(loc project) {
 		
 		//list[Figure]
 		cloneReferences = for(decl <- clones[clone])
-			append createClassFig(clone, decl, cloneSize * 2);
+			append createFigureForClass(clone, decl, cloneSize * 2);
 		
 		cloneTree = tree (cloneEllipse, cloneReferences,
 			std(size(50)), std(gap(20)), manhattan(false) );

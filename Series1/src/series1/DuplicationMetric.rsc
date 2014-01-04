@@ -10,10 +10,11 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import lang::java::m3::AST;
 import util::Benchmark;
+import Map;
 
 import Utils;
 
-private	map[value, int] benchmark=("":0);
+private	map[value, int] benchmark=();
 
 private void addToBenchmark(value key, int val){
 	if(key in benchmark){
@@ -126,6 +127,129 @@ public map[list[str], set[loc] ] findFilteredClones(set[Declaration] ast, blockS
 	return clones;
 }
 
+//test Data
+public map[loc, list[str]] map1 = (|project://SimpleJava/|:["a","b"],  
+									|project://SimpleJava4/|:["a","d"],  
+									|project://SimpleJava3/|:["a","d"],  
+									|project://SimpleJava2/|:["c","d"]);
+//This method returns a set of locations that definitly has clones. 
+//However, the calculation is done purely based on the minimum blockSize, the clone size can be bigger
+public set[loc] getLocationsWithClone(map[loc, list[str] ] locationToLines, int blockSize){
+	map[list[str], set[loc]] blocksToLocs = ();
+	set[loc] locationsWithClone = {};
+	
+	//each location has certain amount of lines
+	for(location <- locationToLines) {
+		
+		list[str] locationLines = locationToLines[location];
+		int nrOfLines = size(locationLines);
+		
+		//we create blocks of lines according to given blockSize for 
+		//[1,2,3] with blockSize 2 will produce [[1,2],[2,3],[3,4]
+		list[list[str]] blocks = [slice(locationLines,s,e) | s <- [0..nrOfLines], e <- [blockSize..blockSize+1], s+e <= nrOfLines];
+		
+		//each block is used as a key and its values are the locations. If for any block, more locations are found, that block has clones.
+		for(block <- blocks){
+			// if any block already has a location, now this is a clone
+			if(block in blocksToLocs){
+				previousLocs = blocksToLocs[block];
+				blocksToLocs[block] = previousLocs+=location;
+				// we add both
+				locationsWithClone+=previousLocs;
+				locationsWithClone+=location;
+			} else {
+				blocksToLocs[block] = {location};
+			}
+		}
+	}
+	return locationsWithClone;
+}
+
+private map[list[str], set[loc]] allBlocksToAllLocs = ();
+
+private void addBlocksToLoc(list[str] unitLines, loc location, int blockSize){
+	int addBlockStart = getMilliTime();
+	
+	int nrOfLines = size(unitLines);
+	list[list[str]] blocks = [slice(unitLines,s,e) | s <- [0..nrOfLines], e <- [blockSize..nrOfLines+1], s+e <= nrOfLines];
+	
+	for(block <- blocks){
+		
+		bool handled = false;
+		
+		for(blockToLoc <- allBlocksToAllLocs) { 
+			if(blockToLoc < block ){
+				set[loc] locations = allBlocksToAllLocs[blockToLoc];
+				locations+=location;
+				
+				delete(allBlocksToAllLocs,blockToLoc);
+				
+				allBlocksToAllLocs[block] = locations;
+				handled = true;
+				
+			} else if(block < blockToLoc || block == blockToLoc){
+				set[loc] locations = allBlocksToAllLocs[blockToLoc];
+				locations+=location;
+				allBlocksToAllLocs[blockToLoc] = locations;
+				handled=true;
+			} 
+		}
+		
+		if(!handled){
+			allBlocksToAllLocs[block] = {location};
+		}
+	}
+	addToBenchmark("addBlocksToLoc", getMilliTime() - addBlockStart);
+}
+
+private map[list[str], set[loc]]  getUnitsWithDuplication() {
+	map[list[str], set[loc]] unitsWithDuplication =();
+	
+	for(block <- allBlocksToAllLocs){
+	
+		if(size( allBlocksToAllLocs[block] ) > 1 ){
+			unitsWithDuplication[block] = allBlocksToAllLocs[block];
+		}
+	}	
+	return unitsWithDuplication;
+}
+
+private void resetMaps() {
+	allBlocksToAllLocs = ();
+	benchmark=();
+}
+
+public map[list[str], set[loc] ] findClonesByMap(set[Declaration] ast, blockSize, set[str] comments){
+	resetMaps();
+	int startTime = getMilliTime();
+
+	map[loc, list[str] ] unitToLines = mapUnitsTolines(ast, comments);
+
+	addToBenchmark("unitToLines", getMilliTime() - startTime);
+	
+	set[loc] locationsWithClone = getLocationsWithClone(unitToLines, blockSize);
+	
+	println("cloned locs\n<locationsWithClone>");
+	
+	int slicingStart = getMilliTime();
+	
+	for(unit <- unitToLines) {   
+		if(unit in locationsWithClone) {
+			println("unit in clone \n<unit>");
+		    list[str] unitLines = unitToLines[unit];  	
+			addBlocksToLoc(unitLines, unit, blockSize);
+		}
+	}
+
+	addToBenchmark("SlicingAndAdding", getMilliTime() - slicingStart);
+
+	map[list[str], set[loc]] unitsWithClone = getUnitsWithDuplication();
+
+	printBenchmark();
+	
+	return unitsWithClone;
+}
+
 
 @DOC{
 This function produces a map of given locations to their useful lines.
@@ -149,73 +273,6 @@ private map[loc, list[str] ] mapUnitsTolines(set[Declaration] ast, set[str] comm
 }
 
 
-private map[list[str], list[loc]] allBlocksToAllLocs = ();
-
-private void addBlocksToLoc(list[str] unitLines, loc location, int blockSize){
-	int addBlockStart = getMilliTime();
-	
-	int nrOfLines = size(unitLines);
-	list[list[str]] blocks = [slice(unitLines,s,e) | s <- [0..nrOfLines], e <- [blockSize..blockSize+1], s+e <= nrOfLines];
-	
-	for(block <- blocks){
-		if(block in allBlocksToAllLocs){
-			previousLocs = allBlocksToAllLocs[block];
-			allBlocksToAllLocs[block] = previousLocs+=location;
-		} else {
-			allBlocksToAllLocs[block] = [location];
-		}
-	}
-	addToBenchmark("addBlocksToLoc", getMilliTime() - addBlockStart);
-}
-
-
-public map[list[str], set[loc] ] findClonesByMap(set[Declaration] ast, blockSize, set[str] comments){
-	int startTime = getMilliTime();
-
-	map[loc, list[str] ] unitToLines = mapUnitsTolines(ast, comments);
-
-	addToBenchmark("unitToLines", getMilliTime() - startTime);
-	
-	int slicingStart = getMilliTime();
-	
-	for(unit <- unitToLines) {   
-	    list[str] unitLines = unitToLines[unit];  	
-		addBlocksToLoc(unitLines, unit, blockSize);
-	}
-
-	addToBenchmark("SlicingAndAdding", getMilliTime() - slicingStart);
-
-	map[list[str], list[loc]] unitsWithClone = getUnitsWithDuplication();
-
-	printBenchmark();
-
-	return ();
-}
-
-private map[list[str], list[loc]]  getUnitsWithDuplication() {
-	map[list[str], list[loc]] unitsWithDuplication =();
-	
-	for(block <- allBlocksToAllLocs){
-	
-		if(size( allBlocksToAllLocs[block] ) > 1 ){
-			unitsWithDuplication[block] = allBlocksToAllLocs[block];
-		}
-	}
-	
-	return unitsWithDuplication;
-}
-
-private list[list[loc]] getPairedDuplicatedUnits(){
-	map[list[str], list[loc]] unitsWithDuplication = getUnitsWithDuplication();
-	
-	list[list[loc]] paired=[];
-	
-	for(block < - unitsWithDuplication) {
-		paired += unitsWithDuplication[block];
-	}
-	
-	return paired;
-}
 
 //Deprecated
 public data Line = Line(str);

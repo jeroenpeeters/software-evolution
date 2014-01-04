@@ -21,9 +21,9 @@ import series1::VolumeMetric;
 import series1::CCMetric;
 import series1::DuplicationMetric;
 
-public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
-public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
-public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
+public loc smallsql     = |project://smallsql0.21_src/|;
+public loc hsqldb       = |project://hsqldb-2.3.1/|;
+public loc simplejava   = |project://SimpleJava/|;
 
 private int MINIMUM_CLONE_BLOCK = 6;
 private str CLASS_COLOR = "green";
@@ -35,13 +35,13 @@ private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)
 public void visualizeClones(loc project) {
 	int startTime = getMilliTime();
 	
-	map[list[str], set[loc] ] clones=	findClones(project);
+	map[list[str], list[loc] ] clones=	findClones(project);
 	
 	list[Figure] visibleObjectsToDraw = [];
 	
 	for(clone <- clones ){
 		int cloneSize = size(clone);
-		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor(CLONE_COLOR));
+		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor("orange"));
 		
 		//list[Figure]
 		cloneReferences = for(decl <- clones[clone])
@@ -60,11 +60,11 @@ public void visualizeClones(loc project) {
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
 
-private map[list[str], set[loc] ] findClones(loc project){
-	M3 m3 = createM3FromEclipseProject(project);
+private map[list[str], list[loc] ] findClones(loc project){
+	M3 m3 = createM3FromEclipseProject(project);	
 	ast = createAstsFromEclipseProject(project, false);
 	
-	return findFilteredClones(ast, MINIMUM_CLONE_BLOCK, readComments(m3));
+	return findClonesByMap(ast, 6, readComments(m3));
 } 
 
 private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
@@ -75,10 +75,10 @@ private Figure createFigureForClass(list[str] clonedLines, loc location, int fig
 				);
 }
 
-private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
+private list[Figure] makeProjectSummary(loc project, map[list[str], list[loc] ] clones) {
 	int mapSize =0;
 	
-	set[loc] allLocations = {};
+	list[loc] allLocations = [];
 	for(clone <- clones){
 		mapSize+=1;
 		allLocations += clones[clone]; 
