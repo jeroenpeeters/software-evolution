@@ -32,10 +32,11 @@ private str CLONE_COLOR ="orange";
 private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)\nThe size of the clones represent the relative clone size between the clones.";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
+
 public void visualizeClones(loc project) {
 	int startTime = getMilliTime();
 	
-	map[list[str], list[loc] ] clones=	findClones(project);
+	map[list[str], set[loc] ] clones=	findClones(project);
 	
 	list[Figure] visibleObjectsToDraw = [];
 	
@@ -60,11 +61,17 @@ public void visualizeClones(loc project) {
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
 
-private map[list[str], list[loc] ] findClones(loc project){
-	M3 m3 = createM3FromEclipseProject(project);	
+private map[list[str], set[loc] ] findClones(loc project){
+	M3 m3 = createM3FromEclipseProject(project);
+	
+	comments = {};
+	for(<_,line> <- m3@documentation){
+		comments += toSet(readFileLines(line));
+	}
+	
 	ast = createAstsFromEclipseProject(project, false);
 	
-	return findClonesByMap(ast, 6, readComments(m3));
+	return findClonesByMap(ast, 6, comments);
 } 
 
 private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
@@ -75,13 +82,13 @@ private Figure createFigureForClass(list[str] clonedLines, loc location, int fig
 				);
 }
 
-private list[Figure] makeProjectSummary(loc project, map[list[str], list[loc] ] clones) {
+private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
 	int mapSize =0;
 	
 	list[loc] allLocations = [];
 	for(clone <- clones){
 		mapSize+=1;
-		allLocations += clones[clone]; 
+		allLocations += toList(clones[clone]); 
 	}
 	
 	list[str] projectDetails = ["Clones: <mapSize> \nFiles associated: <size(allLocations)>", CLONE_DESCRIPTION];
@@ -93,7 +100,7 @@ private list[Figure] makeTextBox(str title, list[str] messages){
 	visMessages = for(message <- messages) 
 		append  text(message, fontColor("black"), fontSize(10), left());
 	
-	visMessages = [text(title, fontColor(CLASS_COLOR), fontSize(16), left())] + visMessages;
+	visMessages = [text(title, fontColor("green"), fontSize(16), left())] + visMessages;
 	
 	return [vcat(visMessages, std(gap(10)), left())];
 }

@@ -118,7 +118,6 @@ private list[Figure] makeTextBox(str title, list[str] messages){
 }
 
 public void visualizeClones(loc project) {
-	//loc project=|project://SimpleJava/|;
 	int startTime = getMilliTime();
 	
 	map[list[str], set[loc] ] clones=	findClones(project);
