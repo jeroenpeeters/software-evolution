@@ -63,10 +63,10 @@ public Figure unitVolumeCCViz(ast, comments, bool showClasses){
 		num classSize = sum([u@volume | u <- class@units]);
 		//println(className);
 		//println(classSize);
-		setPrecision(10);
+		setPrecision(1000);
 		real x = 0.0;
 		for(u:Unit(loc methodLoc, str unitName) <- sort(class@units, unitsort)){
-			itemSize = toReal(u@volume);
+			itemSize = u@volume;
 			complexity = u@cc;
 			mpackage = "<package>.<className>";
 			mname = unitName;
@@ -75,23 +75,33 @@ public Figure unitVolumeCCViz(ast, comments, bool showClasses){
 			//println(itemSize);
 			//println(itemSize/classSize);
 			
-			/*real diff = 0.0;
+			real diff = 0.00000001;
 			if(x+ (itemSize/classSize) > 1.0)diff = 1-x;
 			
-			x += (itemSize/classSize) - diff;
+			
 			//println(x);
 			
-			if(diff != 0){
+			/*if(diff != 0){
 				println(unitName);
 				println("d:<diff>");
 				println(x);
-			}*/
+			}
+			while(x + ((itemSize/classSize)-diff) > 1.0){
+				println("damn <unitName>! <diff>");
+				diff = diff *2;
+				//x += (itemSize/classSize)-diff;
+				
+			}
+			
+			x += (itemSize/toReal(classSize));*/
 			
 			//hshrink((((itemSize)/classSize)-diff))
 			
-			blocks += box(fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(1),
+			blocks += box(hshrink((itemSize/toReal(classSize))-diff), fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(0),
 				onMouseDown(openLocation(methodLoc)), onMouseEnter(void () {c=true; selMethod=mname; selClass=mpackage;selSize="<itemSize>";selCC="<complexity>";}), onMouseExit(void () { c = false ; }));
 		}
+		
+		println("size for <className> is <x>");
 		totalSize += classSize;
 		if(showClasses){
 			figures += box( hcat(blocks), area(classSize), lineColor(color("black")), lineWidth(3));
