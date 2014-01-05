@@ -19,6 +19,8 @@ import Utils;
 private map[list[str], set[loc]] allBlocksToAllLocs = ();
 private	map[value, int] benchmark=();
 
+private real clonePercentage;
+
 private void addToBenchmark(value key, int val){
 	if(key in benchmark){
 		int oldVal = benchmark[key];
@@ -38,6 +40,29 @@ private void printBenchmark(){
 private void resetMaps() {
 	allBlocksToAllLocs = ();
 	benchmark=();
+}
+
+public real getClonePercentage() = clonePercentage;
+
+//assumes that duplication is already calculated
+private void caclulateClonePercentage(map[loc, list[str] ] unitToLines){
+	int total = 0;
+	for(location <- unitToLines) {
+		total+= size( unitToLines[location] );
+	}
+	
+	int clonesCount = 0;
+	
+	map[list[str], set[loc]] clones =  getUnitsWithDuplication();
+	for(clone <- clones ){
+		int cloneSize = size(clone);
+		int relatedLocations = size( clones[clone] ) - 1;
+		clonesCount+= (cloneSize * relatedLocations) ;
+	}
+	
+	clonePercentage = (toReal(clonesCount) / toReal(total) ) * 100;
+	
+	println("totalLines: <total>, clone count: <clonesCount>, percentage <clonePercentage> % ");
 }
 
 
@@ -68,6 +93,8 @@ public map[list[str], set[loc] ] findClonesByMap(set[Declaration] ast, blockSize
 	println("Done: filtering the cloned classes.");
 	
 	printBenchmark();
+	
+	caclulateClonePercentage(unitToLines);
 	
 	return unitsWithClone;
 }
@@ -176,7 +203,6 @@ private map[loc, list[str] ] mapUnitsTolines(set[Declaration] ast, set[str] comm
     
     return unitToLines;
 }
-
 
 //test Data
 public map[loc, list[str]] map1 = (|project://SimpleJava/|:["a","b"],  

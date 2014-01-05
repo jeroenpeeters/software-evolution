@@ -29,7 +29,7 @@ private int MINIMUM_CLONE_BLOCK = 6;
 private str CLASS_COLOR = "green";
 private str CLONE_COLOR ="orange";
 
-private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)\nThe size of the clones represent the relative clone size between the clones.";
+private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
 public void visualizeClones(loc project) {
@@ -55,7 +55,7 @@ public void visualizeClones(loc project) {
 	
 	visibleObjectsToDraw = makeProjectSummary(project, clones) +  visibleObjectsToDraw;
 	
-	render( pack( visibleObjectsToDraw, gap(50)) );
+	render( vcat( visibleObjectsToDraw, gap(50)) );
 	
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
@@ -90,9 +90,11 @@ private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] c
 		allLocations += toList(clones[clone]); 
 	}
 	
-	list[str] projectDetails = ["Clones: <mapSize> \nFiles associated: <size(allLocations)>", CLONE_DESCRIPTION];
+	int perc = round(getClonePercentage());
 	
-	return makeTextBox("<project> Summary of Duplications", projectDetails);
+	list[str] projectDetails = ["We found <mapSize> place(s) in this project,\nwhich is good for <perc>% duplication,\nspread over <size(allLocations)> files.", CLONE_DESCRIPTION];
+	
+	return makeTextBox("Summary of Duplications for <project>", projectDetails);
 }
 
 private list[Figure] makeTextBox(str title, list[str] messages){
