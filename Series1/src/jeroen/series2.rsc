@@ -23,6 +23,8 @@ public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
 public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
 
 private data Class = Class(loc class);
+private anno list[Unit]  Class @ units;
+
 private data Unit = Unit( loc method);
 private anno int Unit @ cc;
 private anno int Unit @ volume;
@@ -39,11 +41,11 @@ public Figure unitVolumeCCViz(ast, comments, bool showClasses){
 	list[Figure] figures = []; // list of figures to be rendered into the treemap
 	int totalSize = 0; // total size of the project
 	
-	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
-	for(class:Class(loc classLoc) <- classUnitMap){
+	set[Class] classSet = composedMetric(ast, comments);
+	for(class:Class(loc classLoc) <- classSet){
 		list[Figure] blocks = []; 
 		int classSize = 0;
-		for(u:Unit(loc methodLoc) <- sort(classUnitMap[class], sortUnits)){
+		for(u:Unit(loc methodLoc) <- sort(class@units, unitsort)){
 			itemSize = u@volume;
 			complexity = u@cc;
 			c = false;
@@ -71,13 +73,13 @@ public Figure unitVolumeCCVizNoClasses(ast, comments){
 	list[Figure] figures = []; // list of figures to be rendered into the treemap
 	int totalSize = 0; // total size of the project
 	
-	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
+	set[Class] classSet = composedMetric(ast, comments);
 	list[Unit] allUnits = [];
-	for(class:Class(loc classLoc) <- classUnitMap){
-		allUnits += classUnitMap[class];
+	for(class:Class(loc classLoc) <- classSet){
+		allUnits += class@units;
 	}
 	
-	allUnits = sort(allUnits, sortUnits);
+	allUnits = sort(allUnits, unitsort);
 	for(u:Unit(loc methodLoc) <- allUnits){
 		itemSize = u@volume;
 		totalSize += itemSize;
@@ -90,21 +92,27 @@ public Figure unitVolumeCCVizNoClasses(ast, comments){
 }
 
 
-public bool (Unit, Unit) sortUnits = bool (Unit a, Unit b) {
+public bool (Unit, Unit) unitsort = bool (Unit a, Unit b) {
 	return a@cc > b@cc;
 };
 
-public map[Class, list[Unit]] composedMetric(set[Declaration] ast, set[str] comments){
-	map[Class, list[Unit]] classUnitMap = ();
-    for(/compilationUnit(package, _, /c:class(className, _,_, /m:method(_, name, _, _, s) )) <- ast){
+public int totalVolume(list[Unit] units) = sum([ u@volume | u <- units]);
+
+public set[Class] composedMetric(set[Declaration] ast, set[str] comments){
+	set[Class] classSet = {};
+    for(/compilationUnit(package, _, /c:class(className, _,_, list[Declaration] body)) <- ast){
+    	
     	Class clazz = Class(c@src);
-    	Unit u = Unit(m@src);
-    	u@cc = cc(s, false);
-    	u@volume = sloc(s@src, comments);
-    	if(clazz notin classUnitMap){
-    		classUnitMap[clazz] = [];
+    	clazz@units = [];
+    	
+    	for(/m:method(_, name, _, _, s) <- body){
+    		Unit u = Unit(m@src);
+    		u@cc = cc(s, false);
+    		u@volume = sloc(s@src, comments);
+    		clazz@units += u;
     	}
-    	classUnitMap[clazz] += [u];
+
+    	classSet += clazz;
     }
-    return classUnitMap;
+    return classSet;
 }
