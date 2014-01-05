@@ -21,15 +21,15 @@ import series1::VolumeMetric;
 import series1::CCMetric;
 import series1::DuplicationMetric;
 
-public loc smallsql     = |project://smallsql0.21_src/|; //bechnmark: 18seconds
-public loc hsqldb       = |project://hsqldb-2.3.1/|; // benchmark: 2min32sec
-public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
+public loc smallsql     = |project://smallsql0.21_src/|;
+public loc hsqldb       = |project://hsqldb-2.3.1/|;
+public loc simplejava   = |project://SimpleJava/|;
 
 private int MINIMUM_CLONE_BLOCK = 6;
 private str CLASS_COLOR = "green";
 private str CLONE_COLOR ="orange";
 
-private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)\nThe size of the clones represent the relative clone size between the clones.";
+private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
 public void visualizeClones(loc project) {
@@ -41,7 +41,7 @@ public void visualizeClones(loc project) {
 	
 	for(clone <- clones ){
 		int cloneSize = size(clone);
-		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor(CLONE_COLOR));
+		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor("orange"));
 		
 		//list[Figure]
 		cloneReferences = for(decl <- clones[clone])
@@ -55,16 +55,22 @@ public void visualizeClones(loc project) {
 	
 	visibleObjectsToDraw = makeProjectSummary(project, clones) +  visibleObjectsToDraw;
 	
-	render( pack( visibleObjectsToDraw, gap(50)) );
+	render( vcat( visibleObjectsToDraw, gap(50)) );
 	
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
 }
 
 private map[list[str], set[loc] ] findClones(loc project){
 	M3 m3 = createM3FromEclipseProject(project);
+	
+	comments = {};
+	for(<_,line> <- m3@documentation){
+		comments += toSet(readFileLines(line));
+	}
+	
 	ast = createAstsFromEclipseProject(project, false);
 	
-	return findFilteredClones(ast, MINIMUM_CLONE_BLOCK, readComments(m3));
+	return findClonesByMap(ast, 6, comments);
 } 
 
 private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
@@ -78,22 +84,24 @@ private Figure createFigureForClass(list[str] clonedLines, loc location, int fig
 private list[Figure] makeProjectSummary(loc project, map[list[str], set[loc] ] clones) {
 	int mapSize =0;
 	
-	set[loc] allLocations = {};
+	list[loc] allLocations = [];
 	for(clone <- clones){
 		mapSize+=1;
-		allLocations += clones[clone]; 
+		allLocations += toList(clones[clone]); 
 	}
 	
-	list[str] projectDetails = ["Clones: <mapSize> \nFiles associated: <size(allLocations)>", CLONE_DESCRIPTION];
+	int perc = round(getClonePercentage());
 	
-	return makeTextBox("<project> Summary of Duplications", projectDetails);
+	list[str] projectDetails = ["We found <mapSize> place(s) in this project,\nwhich is good for <perc>% duplication,\nspread over <size(allLocations)> files.", CLONE_DESCRIPTION];
+	
+	return makeTextBox("Summary of Duplications for <project>", projectDetails);
 }
 
 private list[Figure] makeTextBox(str title, list[str] messages){
 	visMessages = for(message <- messages) 
 		append  text(message, fontColor("black"), fontSize(10), left());
 	
-	visMessages = [text(title, fontColor(CLASS_COLOR), fontSize(16), left())] + visMessages;
+	visMessages = [text(title, fontColor("green"), fontSize(16), left())] + visMessages;
 	
 	return [vcat(visMessages, std(gap(10)), left())];
 }

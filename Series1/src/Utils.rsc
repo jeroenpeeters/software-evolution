@@ -63,11 +63,12 @@ public void testColorForDuplication(){
 	render( hcat( [ box(fillColor( duplicationColor(i) )) | i <- [1..6] ] ) );
 }
 
-public bool (int, map[KeyModifier, bool]) openLocation(loc ref) = 
-	  bool (int butnr, map[KeyModifier, bool] modifiers) {
+public bool (int, map[KeyModifier, bool]) openLocation(loc ref) { 
+	return bool (int butnr, map[KeyModifier, bool] modifiers) {
 		  edit(ref);
 		  return true;
 	};
+}
 	
 public set[str] readComments(loc project) = readComments(createM3FromEclipseProject(project));
 	
