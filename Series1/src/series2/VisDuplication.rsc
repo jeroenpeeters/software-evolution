@@ -32,7 +32,6 @@ private str CLONE_COLOR ="orange";
 private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)\nThe size of the clones represent the relative clone size between the clones.";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
-
 public void visualizeClones(loc project) {
 	int startTime = getMilliTime();
 	
