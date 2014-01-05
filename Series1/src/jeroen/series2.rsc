@@ -27,40 +27,72 @@ private data Unit = Unit( loc method);
 private anno int Unit @ cc;
 private anno int Unit @ volume;
 
-public void main(loc project){
+public void main(loc project, bool showClasses){
 	ast = createAstsFromEclipseProject(project, false);
-	render(unitVolumeCCViz(ast, readComments(project)));
+	render(unitVolumeCCViz(ast, readComments(project), showClasses));
 }
 
-public Figure unitVolumeCCViz(ast, comments){
-	a = [];
-	//lrel[int, str, loc] slocList = reverse(sort(slocPerUnit(ast	, comments)));
-	//map[str, tuple[int, loc]] complexityRels = ccPerUnit(ast);
-	//real largest = toReal(slocList[0][0]);
-	int totalSize = 0;
+public Figure unitVolumeCCViz(ast, comments, bool showClasses){
+	if(!showClasses){
+		return unitVolumeCCVizNoClasses(ast, comments);
+	}
+	list[Figure] figures = []; // list of figures to be rendered into the treemap
+	int totalSize = 0; // total size of the project
+	
 	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
 	for(class:Class(loc classLoc) <- classUnitMap){
-		blocks = [];
+		list[Figure] blocks = []; 
 		int classSize = 0;
-		for(u:Unit(loc methodLoc) <- classUnitMap[class]){
-			//println("<classLoc> :: <methodLoc> -\> <u@volume>");
+		for(u:Unit(loc methodLoc) <- sort(classUnitMap[class], sortUnits)){
 			itemSize = u@volume;
 			complexity = u@cc;
 			c = false;
-			blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity), lineWidth(0)),
+			
+			blocks += box(area(itemSize), fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(1),
 				onMouseDown(openLocation(methodLoc)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 			classSize += itemSize;
 		}
 		totalSize += classSize;
-		a += box( treemap(blocks), area(classSize), lineColor(color("black")), lineWidth(1));
+		if(showClasses){
+			figures += box( treemap(blocks), area(classSize), lineColor(color("black")), lineWidth(3));
+		}else{
+			figures = figures + blocks;
+		}
 	}
 	/*blocks += box(area(itemSize), fillColor(getColor(complexity)),
 		//lineWidth(num () { return c ? 2 : 1; }),
 		//lineColor(Color () { return c ? color("red") : color("black"); }),
 		onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 		*/
-	return vscrollable(treemap(a, lineWidth(0)), height(totalSize/10), lineWidth(0));
+	return vscrollable(treemap(figures), height(totalSize/10), lineWidth(0));
 }
+
+public Figure unitVolumeCCVizNoClasses(ast, comments){
+	list[Figure] figures = []; // list of figures to be rendered into the treemap
+	int totalSize = 0; // total size of the project
+	
+	map[Class, list[Unit]] classUnitMap = composedMetric(ast, comments);
+	list[Unit] allUnits = [];
+	for(class:Class(loc classLoc) <- classUnitMap){
+		allUnits += classUnitMap[class];
+	}
+	
+	allUnits = sort(allUnits, sortUnits);
+	for(u:Unit(loc methodLoc) <- allUnits){
+		itemSize = u@volume;
+		totalSize += itemSize;
+		complexity = u@cc;
+		
+		figures += box(area(itemSize), fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(1),
+			onMouseDown(openLocation(methodLoc)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
+	}
+	return vscrollable(treemap(figures), height(totalSize/10), lineWidth(0));
+}
+
+
+public bool (Unit, Unit) sortUnits = bool (Unit a, Unit b) {
+	return a@cc > b@cc;
+};
 
 public map[Class, list[Unit]] composedMetric(set[Declaration] ast, set[str] comments){
 	map[Class, list[Unit]] classUnitMap = ();
@@ -75,22 +107,4 @@ public map[Class, list[Unit]] composedMetric(set[Declaration] ast, set[str] comm
     	classUnitMap[clazz] += [u];
     }
     return classUnitMap;
-}
-
-private str getColor(int cc) {
-	if(cc < 0){
-		return "black";
-	} else if(cc < 5){
-		return "lime";
-	} else if(cc < 10){
-		return "limegreen";
-	} else if (cc < 20){
-		return "yellow";
-	} else if (cc < 40){
-		return "tomato";
-	} else if(cc < 50){
-		return "red";
-	} else {
-		return "darkred";
-	}
 }
