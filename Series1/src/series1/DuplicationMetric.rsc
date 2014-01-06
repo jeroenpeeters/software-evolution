@@ -194,7 +194,7 @@ private map[loc, list[str] ] mapUnitsTolines(set[Declaration] ast, set[str] comm
     	for(line <- readFileLines(c@src)){   	
 			tLine=trim(line);
 		
-			if(size(tLine) > 0 && !startsWith(tLine, "import") && tLine notin comments && line notin comments){
+			if(size(tLine) > 0 && !startsWith(tLine, "import") && !startsWith(tLine, "package") && tLine notin comments && line notin comments){
 				unitLines+=tLine;
 			}					
     	}	

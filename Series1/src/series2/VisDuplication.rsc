@@ -30,6 +30,7 @@ private str CLASS_COLOR = "green";
 private str CLONE_COLOR ="orange";
 
 private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)";
+private str dynamicInfo ="";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
 public void visualizeClones(loc project) {
@@ -39,9 +40,18 @@ public void visualizeClones(loc project) {
 	
 	list[Figure] visibleObjectsToDraw = [];
 	
+	dynamicBox = [ text( str () {return dynamicInfo;}, left(),fontSize(8) )];
+	
 	for(clone <- clones ){
 		int cloneSize = size(clone);
-		cloneEllipse = ellipse(NO_BORDER, size( cloneSize * 3 ), fillColor("orange"));
+		str cloneSummary = makeSummaryForCloneLines(clone);
+		
+		cloneEllipse = ellipse(	NO_BORDER, 
+								size( cloneSize * 3 ), 
+								fillColor("orange"),
+								onMouseEnter(void () {dynamicInfo=cloneSummary;}),
+								onMouseDown( setDynamicInfo("") )
+						);
 		
 		//list[Figure]
 		cloneReferences = for(decl <- clones[clone])
@@ -53,11 +63,28 @@ public void visualizeClones(loc project) {
 		visibleObjectsToDraw+= cloneTree;
 	}
 	
-	visibleObjectsToDraw = makeProjectSummary(project, clones) +  visibleObjectsToDraw;
+	
+	visibleObjectsToDraw = makeProjectSummary(project, clones) + dynamicBox +  visibleObjectsToDraw;
 	
 	render( vcat( visibleObjectsToDraw, gap(50)) );
 	
 	println("It took <(getMilliTime()-startTime)/1000> seconds to calculate and visualize duplicates.");
+}
+
+public bool (int, map[KeyModifier, bool]) setDynamicInfo(str info) { 
+	return bool (int butnr, map[KeyModifier, bool] modifiers) {
+		dynamicInfo = info;
+		return true;
+	};
+}
+
+//assumes the given lines is at least 6 long
+private str makeSummaryForCloneLines(list[str] cloneLines) {
+	str summary ="Summary of lines: ";
+	for(i <- [0..6]) {
+		summary+= "\n<cloneLines[i]>";
+	}
+	return summary;
 }
 
 private map[list[str], set[loc] ] findClones(loc project){
