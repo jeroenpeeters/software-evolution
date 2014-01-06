@@ -33,7 +33,7 @@ private	str CLONE_DESCRIPTION =	"Orange=clone\nGreen=associated file (clickable)
 private str dynamicInfo ="";
 
 //start here: example visualizeClones(|project://SimpleJava/|); 
-public void visualizeClones(loc project) {
+public void visualize(loc project) {
 	int startTime = getMilliTime();
 	
 	map[list[str], set[loc] ] clones=	findClones(project);
@@ -102,7 +102,7 @@ private map[list[str], set[loc] ] findClones(loc project){
 
 private Figure createFigureForClass(list[str] clonedLines, loc location, int figSize){
 	return ellipse(	NO_BORDER,
-					size(15), 
+					size(15),
 					fillColor(CLASS_COLOR),  
 					onMouseDown( openLocation(location) )
 				);
