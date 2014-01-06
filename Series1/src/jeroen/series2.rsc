@@ -24,20 +24,18 @@ public loc simplejava   = |project://SimpleJava/|; // benchmark: <1sec
 
 private data Class = Class(loc class, str className, str package);
 private anno list[Unit]  Class @ units;
+private anno num Class @ volume;
 
 private data Unit = Unit(loc method, str name);
 private anno int Unit @ cc;
 private anno int Unit @ volume;
 
-public void main(loc project, bool showClasses){
+public void main(loc project){
 	ast = createAstsFromEclipseProject(project, false);
-	render("UnitVolumeCC Vis", unitVolumeCCViz(ast, readComments(project), showClasses));
+	render("UnitVolumeCC Vis", unitVolumeCCViz(ast, readComments(project), 5, 5));
 }
 
-public Figure unitVolumeCCViz(ast, comments, bool showClasses){
-	if(!showClasses){
-		return unitVolumeCCVizNoClasses(ast, comments);
-	}
+public Figure unitVolumeCCViz(ast, comments, int minVolume,int  minCC){
 	list[Figure] figures = []; // list of figures to be rendered into the treemap
 	num totalSize = 0; // total size of the project
 	
@@ -57,70 +55,31 @@ public Figure unitVolumeCCViz(ast, comments, bool showClasses){
 		
 	infoBox = grid([row1,row2], hgap(10), fillColor("white"), vshrink(0.1));
 	
-	set[Class] classSet = composedMetric(ast, comments);
-	for(class:Class(loc classLoc, str className, str package) <- classSet){
+	list[Class] classList = sort(composedMetric(ast, comments), classSort);
+	for(class:Class(loc classLoc, str className, str package) <- classList){
 		list[Figure] blocks = []; 
-		num classSize = sum([u@volume | u <- class@units]);
-		//println(className);
-		//println(classSize);
+		num classSize = class@volume;
 		setPrecision(1000);
-		real x = 0.0;
-		for(u:Unit(loc methodLoc, str unitName) <- sort(class@units, unitsort)){
+		for(u:Unit(loc methodLoc, str unitName) <- sort(class@units, unitSort)){
 			itemSize = u@volume;
 			complexity = u@cc;
 			mpackage = "<package>.<className>";
 			mname = unitName;
 			
-			//println(unitName);
-			//println(itemSize);
-			//println(itemSize/classSize);
-			
 			real diff = 0.00000001;
-			if(x+ (itemSize/classSize) > 1.0)diff = 1-x;
-			
-			
-			//println(x);
-			
-			/*if(diff != 0){
-				println(unitName);
-				println("d:<diff>");
-				println(x);
-			}
-			while(x + ((itemSize/classSize)-diff) > 1.0){
-				println("damn <unitName>! <diff>");
-				diff = diff *2;
-				//x += (itemSize/classSize)-diff;
-				
-			}
-			
-			x += (itemSize/toReal(classSize));*/
-			
-			//hshrink((((itemSize)/classSize)-diff))
 			
 			blocks += box(hshrink((itemSize/toReal(classSize))-diff), fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(0),
 				onMouseDown(openLocation(methodLoc)), onMouseEnter(void () {c=true; selMethod=mname; selClass=mpackage;selSize="<itemSize>";selCC="<complexity>";}), onMouseExit(void () { c = false ; }));
 		}
-		
-		println("size for <className> is <x>");
 		totalSize += classSize;
-		if(showClasses){
-			figures += box( hcat(blocks), area(classSize), lineColor(color("black")), lineWidth(3));
-		}else{
-			figures = figures + blocks;
-		}
+		figures += box( hcat(blocks), area(classSize), lineColor(color("black")), lineWidth(3));
 	}
-	/*blocks += box(area(itemSize), fillColor(getColor(complexity)),
-		//lineWidth(num () { return c ? 2 : 1; }),
-		//lineColor(Color () { return c ? color("red") : color("black"); }),
-		onMouseDown(open(ref)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
-		*/
-		
+	//tuple[list[Figure] t1, list[Figure] t2] figtuple = split(figures);
 	
-	return vcat([infoBox, vscrollable(treemap(figures, height(totalSize/10)), lineWidth(0)) ]);
-	//return treemap(figures);
+	return vcat([infoBox, vscrollable(treemap(figures, height(totalSize/50)), lineWidth(0)) ]);
 }
 
-public Figure unitVolumeCCVizNoClasses(ast, comments){
+/*public Figure unitVolumeCCVizNoClasses(ast, comments){
 	list[Figure] figures = []; // list of figures to be rendered into the treemap
 	int totalSize = 0; // total size of the project
 	
@@ -139,19 +98,21 @@ public Figure unitVolumeCCVizNoClasses(ast, comments){
 		figures += box(area(itemSize), fillColor(determineComplexityColor(complexity)), lineColor(color("grey")), lineWidth(1),
 			onMouseDown(openLocation(methodLoc)), onMouseEnter(void () { c = true; }), onMouseExit(void () { c = false ; }));
 	}
-	return vscrollable(treemap(figures), height(totalSize/10), lineWidth(0));
-	//return treemap(figures);
-}
+	return vscrollable(treemap(figures), height(totalSize/100), lineWidth(0));
+}*/
 
+public bool (Class, Class) classSort = bool (Class a, Class b) {
+	return a@volume > b@volume;
+};
 
-public bool (Unit, Unit) unitsort = bool (Unit a, Unit b) {
+public bool (Unit, Unit) unitSort = bool (Unit a, Unit b) {
 	return a@cc > b@cc;
 };
 
 public int totalVolume(list[Unit] units) = sum([ u@volume | u <- units]);
 
-public set[Class] composedMetric(set[Declaration] ast, set[str] comments){
-	set[Class] classSet = {};
+public list[Class] composedMetric(set[Declaration] ast, set[str] comments){
+	list[Class] classSet = [];
     for(/compilationUnit(package, _, /c:class(className, _,_, list[Declaration] body)) <- ast){
     	
     	Class clazz = Class(c@src, className, fqPackageName(package));
@@ -163,7 +124,7 @@ public set[Class] composedMetric(set[Declaration] ast, set[str] comments){
     		u@volume = sloc(s@src, comments);
     		clazz@units += u;
     	}
-
+		clazz@volume = sum([u@volume | u <- clazz@units]);
     	classSet += clazz;
     }
     return classSet;
