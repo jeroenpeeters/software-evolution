@@ -1,4 +1,4 @@
-module series2::VisVolume
+module series2::VisVolumeCyclomatic
 
 import IO;
 import List;
@@ -30,7 +30,7 @@ private data Unit = Unit(loc method, str name);
 private anno int Unit @ cc;
 private anno int Unit @ volume;
 
-public void main(loc project){
+public void visualize(loc project){
 	ast = createAstsFromEclipseProject(project, false);
 	render("UnitVolumeCC Vis", unitVolumeCCViz(ast, readComments(project), 5, 5));
 }
